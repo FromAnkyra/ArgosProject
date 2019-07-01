@@ -128,6 +128,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       m_pcProximity = GetSensor  <CCI_FootBotProximitySensor      >("footbot_proximity"    );
       m_pcLight     = GetSensor  <CCI_FootBotLightSensor          >("footbot_light"        );
       m_pcGround    = GetSensor  <CCI_FootBotMotorGroundSensor    >("footbot_motor_ground" );
+       battery_sensor    = GetSensor  <CCI_BatterySensor    >("battery" );
       /*
        * Parse XML parameters
        */
@@ -154,6 +155,11 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 /****************************************/
 
 void CFootBotForaging::ControlStep() {
+
+    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
+
+    std::cout << reading.AvailableCharge << std::endl;
+
    switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
          Rest();

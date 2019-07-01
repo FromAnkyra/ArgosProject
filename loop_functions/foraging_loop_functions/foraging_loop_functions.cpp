@@ -3,6 +3,7 @@
 #include <argos3/core/utility/configuration/argos_configuration.h>
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 #include <controllers/footbot_foraging/footbot_foraging.h>
+#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
 
 /****************************************/
 /****************************************/
@@ -101,6 +102,18 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
 /****************************************/
 
 void CForagingLoopFunctions::PreStep() {
+
+    CSpace::TMapPerType& batteries = GetSpace().GetEntitiesByType("battery");
+
+    for(auto& map_element : batteries)
+    {
+        CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
+
+        std::cout << battery.GetParent().GetId() << std::endl;
+
+        battery.SetAvailableCharge(0.5);
+    }
+
    /* Logic to pick and drop food items */
    /*
     * If a robot is in the nest, drop the food item
