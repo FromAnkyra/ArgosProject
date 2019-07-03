@@ -7,8 +7,15 @@
 /* Logging */
 #include <argos3/core/utility/logging/argos_log.h>
 
+#include <fstream>
+#include <ctime>
+
 /****************************************/
 /****************************************/
+
+std::ofstream file;
+int i = 0;
+char buffer [80];
 
 CFootBotForaging::SFoodData::SFoodData() :
    HasFoodItem(false),
@@ -138,6 +145,20 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
       /* Controller state */
       m_sStateData.Init(GetNode(t_node, "state"));
+
+       time_t t = time(0);   // get time now
+       struct tm * now = localtime( & t );
+
+
+       strftime (buffer,80,"experiments_data/%Y-%m-%d-%R.",now);
+
+
+       file.open (buffer);
+       if(file.is_open())
+       {
+           std::cout<<"Success"<<std::endl;
+       }
+
    }
    catch(CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing the foot-bot foraging controller for robot \"" << GetId() << "\"", ex);
@@ -158,7 +179,9 @@ void CFootBotForaging::ControlStep() {
 
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-    std::cout << reading.AvailableCharge << std::endl;
+//    std::cout << reading.AvailableCharge << std::endl;
+//    BatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
+//    battery.GetParent().GetId()
 
    switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
@@ -193,6 +216,8 @@ void CFootBotForaging::Reset() {
    m_eLastExplorationResult = LAST_EXPLORATION_NONE;
    m_pcRABA->ClearData();
    m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
+
+   file.close();
 }
 
 /****************************************/
@@ -411,6 +436,10 @@ void CFootBotForaging::Explore() {
       m_eLastExplorationResult = LAST_EXPLORATION_SUCCESSFUL;
       /* Switch to 'return to nest' */
       bReturnToNest = true;
+      i++;
+      file.open (buffer, std::ios::app);
+      file<<"robot_id: "<< i <<std::endl;
+      file.close();
    }
    /* Test the second condition: we probabilistically switch to 'return to
     * nest' if we have been wandering for some time and found nothing */

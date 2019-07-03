@@ -5,8 +5,11 @@
 #include <controllers/footbot_foraging/footbot_foraging.h>
 #include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
 
+
 /****************************************/
 /****************************************/
+
+int FoundItems = 0;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
    m_cForagingArenaSideX(-0.9f, 1.7f),
@@ -50,6 +53,10 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
       GetNodeAttribute(tForaging, "energy_per_item", m_unEnergyPerFoodItem);
       /* Get energy loss per walking robot */
       GetNodeAttribute(tForaging, "energy_per_walking_robot", m_unEnergyPerWalkingRobot);
+
+
+
+
    }
    catch(CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error parsing loop functions!", ex);
@@ -109,12 +116,15 @@ void CForagingLoopFunctions::PreStep() {
     {
         CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
 
-        std::cout << battery.GetParent().GetId() << std::endl;
+//        std::cout << battery.GetParent().GetId() << std::endl;
 
         battery.SetAvailableCharge(0.5);
+
     }
 
-   /* Logic to pick and drop food items */
+
+
+    /* Logic to pick and drop food items */
    /*
     * If a robot is in the nest, drop the food item
     * If a robot is on a food item, pick it
@@ -151,6 +161,8 @@ void CForagingLoopFunctions::PreStep() {
             sFoodData.HasFoodItem = false;
             sFoodData.FoodItemIdx = 0;
             ++sFoodData.TotalFoodItems;
+            FoundItems++;
+            std::cout << FoundItems << std::endl;
             /* Increase the energy and food count */
             m_nEnergy += m_unEnergyPerFoodItem;
             ++m_unCollectedFood;
@@ -188,6 +200,8 @@ void CForagingLoopFunctions::PreStep() {
              << unRestingFBs << "\t"
              << m_unCollectedFood << "\t"
              << m_nEnergy << std::endl;
+
+
 }
 
 /****************************************/
