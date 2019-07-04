@@ -7,6 +7,10 @@
 /* Logging */
 #include <argos3/core/utility/logging/argos_log.h>
 
+#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+
+#include "/home/michal/argos3-examples/loop_functions/foraging_loop_functions/foraging_loop_functions.h"
+
 #include <fstream>
 #include <ctime>
 
@@ -14,7 +18,7 @@
 /****************************************/
 
 std::ofstream file;
-int i = 0;
+int FoundItems = 0;
 char buffer [80];
 
 CFootBotForaging::SFoodData::SFoodData() :
@@ -135,7 +139,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       m_pcProximity = GetSensor  <CCI_FootBotProximitySensor      >("footbot_proximity"    );
       m_pcLight     = GetSensor  <CCI_FootBotLightSensor          >("footbot_light"        );
       m_pcGround    = GetSensor  <CCI_FootBotMotorGroundSensor    >("footbot_motor_ground" );
-       battery_sensor    = GetSensor  <CCI_BatterySensor    >("battery" );
+      battery_sensor    = GetSensor  <CCI_BatterySensor    >("battery" );
       /*
        * Parse XML parameters
        */
@@ -179,9 +183,21 @@ void CFootBotForaging::ControlStep() {
 
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-//    std::cout << reading.AvailableCharge << std::endl;
-//    BatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
+    std::cout << reading.AvailableCharge << std::endl;
+//    CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
 //    battery.GetParent().GetId()
+
+//    CSpace::TMapPerType& batteries = GetSpace().GetEntitiesByType("battery");
+//
+//    for(auto& map_element : batteries)
+//    {
+//        CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
+//
+////        std::cout << battery.GetParent().GetId() << std::endl;
+//
+//        battery.SetAvailableCharge(0.5);
+//
+//    }
 
    switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
@@ -435,30 +451,31 @@ void CFootBotForaging::Explore() {
       /* Store the result of the expedition */
       m_eLastExplorationResult = LAST_EXPLORATION_SUCCESSFUL;
       /* Switch to 'return to nest' */
-      bReturnToNest = true;
-      i++;
+//      bReturnToNest = true;
+      FoundItems++;
+      std::cout << FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
       file.open (buffer, std::ios::app);
-      file<<"robot_id: "<< i <<std::endl;
+      file<<"Number of found food items: "<< FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
       file.close();
    }
    /* Test the second condition: we probabilistically switch to 'return to
     * nest' if we have been wandering for some time and found nothing */
-   else if(m_sStateData.TimeExploringUnsuccessfully > m_sStateData.MinimumUnsuccessfulExploreTime) {
-      if (m_pcRNG->Uniform(m_sStateData.ProbRange) < m_sStateData.ExploreToRestProb) {
-         /* Store the result of the expedition */
-         m_eLastExplorationResult = LAST_EXPLORATION_UNSUCCESSFUL;
-         /* Switch to 'return to nest' */
-         bReturnToNest = true;
-      }
-      else {
-         /* Apply the food rule, increasing ExploreToRestProb and
-          * decreasing RestToExploreProb */
-         m_sStateData.ExploreToRestProb += m_sStateData.FoodRuleExploreToRestDeltaProb;
-         m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-         m_sStateData.RestToExploreProb -= m_sStateData.FoodRuleRestToExploreDeltaProb;
-         m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-      }
-   }
+//   else if(m_sStateData.TimeExploringUnsuccessfully > m_sStateData.MinimumUnsuccessfulExploreTime) {
+//      if (m_pcRNG->Uniform(m_sStateData.ProbRange) < m_sStateData.ExploreToRestProb) {
+//         /* Store the result of the expedition */
+//         m_eLastExplorationResult = LAST_EXPLORATION_UNSUCCESSFUL;
+//         /* Switch to 'return to nest' */
+//         bReturnToNest = true;
+//      }
+//      else {
+//         /* Apply the food rule, increasing ExploreToRestProb and
+//          * decreasing RestToExploreProb */
+//         m_sStateData.ExploreToRestProb += m_sStateData.FoodRuleExploreToRestDeltaProb;
+//         m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
+//         m_sStateData.RestToExploreProb -= m_sStateData.FoodRuleRestToExploreDeltaProb;
+//         m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
+//      }
+//   }
    /* So, do we return to the nest now? */
    if(bReturnToNest) {
       /* Yes, we do! */
@@ -494,6 +511,9 @@ void CFootBotForaging::Explore() {
           * the light. Thus, the minus sign is because we want to go away
           * from the light.
           */
+//         BatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
+//         battery.GetParent().GetId()
+//         std::cout << "Robot no. : " << m_sStateData.State << " is in the nest." << std::endl;
          SetWheelSpeedsFromVector(
             m_sWheelTurningParams.MaxSpeed * cDiffusion -
             m_sWheelTurningParams.MaxSpeed * 0.25f * CalculateVectorToLight());

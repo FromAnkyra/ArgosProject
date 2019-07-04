@@ -153,7 +153,7 @@ void CForagingLoopFunctions::PreStep() {
       /* The foot-bot has a food item */
       if(sFoodData.HasFoodItem) {
          /* Check whether the foot-bot is in the nest */
-         if(cPos.GetX() < -1.0f) {
+//         if(cPos.GetX() < -1.0f) {
             /* Place a new food item on the ground */
             m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
                                                   m_pcRNG->Uniform(m_cForagingArenaSideY));
@@ -162,13 +162,13 @@ void CForagingLoopFunctions::PreStep() {
             sFoodData.FoodItemIdx = 0;
             ++sFoodData.TotalFoodItems;
             FoundItems++;
-            std::cout << FoundItems << std::endl;
+//            std::cout << FoundItems << std::endl;
             /* Increase the energy and food count */
             m_nEnergy += m_unEnergyPerFoodItem;
             ++m_unCollectedFood;
             /* The floor texture must be updated */
             m_pcFloor->SetChanged();
-         }
+//         }
       }
       else {
          /* The foot-bot has no food item */
