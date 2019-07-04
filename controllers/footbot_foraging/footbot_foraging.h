@@ -30,6 +30,8 @@
 /* Definition of the foot-bot motor ground sensor */
 #include <argos3/plugins/robots/foot-bot/control_interface/ci_footbot_motor_ground_sensor.h>
 
+#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+
 #include <argos3/plugins/robots/generic/control_interface/ci_battery_sensor.h>
 /* Definitions for random number generation */
 #include <argos3/core/utility/math/rng.h>
@@ -124,7 +126,8 @@ public:
       enum EState {
          STATE_RESTING = 0,
          STATE_EXPLORING,
-         STATE_RETURN_TO_NEST
+         STATE_RETURN_TO_NEST,
+         STATE_CHARGING
       } State;
 
       /* True when the robot is in the nest */
@@ -285,6 +288,11 @@ private:
     */
    void ReturnToNest();
 
+   /*
+    * Executes charging of a robot.
+    */
+   void Charge();
+
 private:
 
    /* Pointer to the differential steering actuator */
@@ -302,7 +310,8 @@ private:
    /* Pointer to the foot-bot motor ground sensor */
    CCI_FootBotMotorGroundSensor* m_pcGround;
 
-    CCI_BatterySensor* battery_sensor;
+   CCI_BatterySensor* battery_sensor;
+
 
    /* The random number generator */
    CRandom::CRNG* m_pcRNG;

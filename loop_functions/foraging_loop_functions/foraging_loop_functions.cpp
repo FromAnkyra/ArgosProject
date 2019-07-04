@@ -9,7 +9,8 @@
 /****************************************/
 /****************************************/
 
-int FoundItems = 0;
+//int FoundItems = 0;
+std::string id;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
    m_cForagingArenaSideX(-0.9f, 1.7f),
@@ -116,12 +117,13 @@ void CForagingLoopFunctions::PreStep() {
     {
         CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
 
+        id = battery.GetParent().GetId();
+
 //        std::cout << battery.GetParent().GetId() << std::endl;
 
-        battery.SetAvailableCharge(0.5);
+//        battery.SetAvailableCharge(0.5);
 
     }
-
 
 
     /* Logic to pick and drop food items */
@@ -161,13 +163,15 @@ void CForagingLoopFunctions::PreStep() {
             sFoodData.HasFoodItem = false;
             sFoodData.FoodItemIdx = 0;
             ++sFoodData.TotalFoodItems;
-            FoundItems++;
+//            FoundItems++;
 //            std::cout << FoundItems << std::endl;
             /* Increase the energy and food count */
             m_nEnergy += m_unEnergyPerFoodItem;
             ++m_unCollectedFood;
             /* The floor texture must be updated */
             m_pcFloor->SetChanged();
+
+
 //         }
       }
       else {

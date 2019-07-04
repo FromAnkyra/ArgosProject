@@ -14,12 +14,28 @@
 #include <fstream>
 #include <ctime>
 
+#include <cstdlib>
+#include <random>
+
 /****************************************/
 /****************************************/
 
 std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
+std::string id;
+
+typedef std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
+uint32_t seed_val;           // populate somehow
+
+MyRNG rng;                   // e.g. keep one global instance (per thread)
+void initialize()
+{
+    rng.seed(seed_val);
+}
+
+std::uniform_int_distribution<uint32_t> uint_dist100(0,100); // range [0,10]
+
 
 CFootBotForaging::SFoodData::SFoodData() :
    HasFoodItem(false),
@@ -154,7 +170,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
        struct tm * now = localtime( & t );
 
 
-       strftime (buffer,80,"experiments_data/%Y-%m-%d-%R.",now);
+       strftime (buffer,80,"experiments_data/%Y-%m-%d/%R",now);
 
 
        file.open (buffer);
@@ -162,6 +178,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
        {
            std::cout<<"Success"<<std::endl;
        }
+       srand((int)time(0));
 
    }
    catch(CARGoSException& ex) {
@@ -181,9 +198,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 
 void CFootBotForaging::ControlStep() {
 
-    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-    std::cout << reading.AvailableCharge << std::endl;
 //    CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
 //    battery.GetParent().GetId()
 
@@ -212,10 +227,26 @@ void CFootBotForaging::ControlStep() {
          ReturnToNest();
          break;
       }
+      case SStateData::STATE_CHARGING: {
+          Charge();
+          break;
+      }
       default: {
          LOGERR << "We can't be here, there's a bug!" << std::endl;
       }
    }
+}
+
+/****************************************/
+/****************************************/
+
+void CFootBotForaging::Charge() {
+    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
+
+    file.open (buffer, std::ios::app);
+    file<<"Battery level (nest): "<< reading.AvailableCharge << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+    file.close();
+
 }
 
 /****************************************/
@@ -233,7 +264,6 @@ void CFootBotForaging::Reset() {
    m_pcRABA->ClearData();
    m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
 
-   file.close();
 }
 
 /****************************************/
@@ -256,10 +286,10 @@ void CFootBotForaging::UpdateState() {
     * (readings 2 and 3) to tell us whether we are on gray: if so, the
     * robot is completely in the nest, otherwise it's outside.
     */
-   if(tGroundReads[2].Value > 0.25f &&
-      tGroundReads[2].Value < 0.75f &&
-      tGroundReads[3].Value > 0.25f &&
-      tGroundReads[3].Value < 0.75f) {
+   if((tGroundReads[0].Value > 0.25f &&
+      tGroundReads[0].Value < 0.75f ) ||
+      (tGroundReads[1].Value > 0.25f &&
+      tGroundReads[1].Value < 0.75f)) {
       m_sStateData.InNest = true;
    }
 }
@@ -386,6 +416,8 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
 /****************************************/
 
 void CFootBotForaging::Rest() {
+
+
    /* If we have stayed here enough, probabilistically switch to
     * 'exploring' */
    if(m_sStateData.TimeRested > m_sStateData.MinimumRestingTime &&
@@ -453,10 +485,44 @@ void CFootBotForaging::Explore() {
       /* Switch to 'return to nest' */
 //      bReturnToNest = true;
       FoundItems++;
-      std::cout << FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-      file.open (buffer, std::ios::app);
-      file<<"Number of found food items: "<< FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-      file.close();
+//      std::cout << FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+//      file.open (buffer, std::ios::app);
+//      file<<"Number of found food items: "<< FoundItems << " ID: " << id << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+//      file.close();
+   }
+
+   CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
+
+   std::cout << "Battery level: " << reading.AvailableCharge << std::endl;
+   double iu = 0.0;
+   iu = reading.AvailableCharge;
+
+
+   int Probablity = uint_dist100(rng);
+
+   if(reading.AvailableCharge <= 0.99001 && reading.AvailableCharge >= 0.99) {
+       std::cout << "OLE" << std::endl;
+       if (Probablity >= 80) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.98001 && reading.AvailableCharge >= 0.98){
+       if (Probablity >= 70) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.97001 && reading.AvailableCharge >= 0.97){
+       if (Probablity >= 60) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.96001 && reading.AvailableCharge >= 0.96){
+       if (Probablity >= 50) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.95001 && reading.AvailableCharge >= 0.95){
+       bReturnToNest = true;
    }
    /* Test the second condition: we probabilistically switch to 'return to
     * nest' if we have been wandering for some time and found nothing */
@@ -483,8 +549,15 @@ void CFootBotForaging::Explore() {
       m_sStateData.TimeSearchingForPlaceInNest = 0;
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
+
+      file.open (buffer, std::ios::app);
+      file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+      file.close();
    }
    else {
+       file.open (buffer, std::ios::app);
+       file<<" probability: " << Probablity << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+       file.close();
       /* No, perform the actual exploration */
       ++m_sStateData.TimeExploringUnsuccessfully;
       UpdateState();
@@ -516,7 +589,7 @@ void CFootBotForaging::Explore() {
 //         std::cout << "Robot no. : " << m_sStateData.State << " is in the nest." << std::endl;
          SetWheelSpeedsFromVector(
             m_sWheelTurningParams.MaxSpeed * cDiffusion -
-            m_sWheelTurningParams.MaxSpeed * 0.25f * CalculateVectorToLight());
+            m_sWheelTurningParams.MaxSpeed * 1.0f * CalculateVectorToLight());
       }
       else {
          /* Use the diffusion vector only */
@@ -541,7 +614,7 @@ void CFootBotForaging::ReturnToNest() {
          m_pcRABA->SetData(0, m_eLastExplorationResult);
          /* ... and switch to state 'resting' */
          m_pcLEDs->SetAllColors(CColor::RED);
-         m_sStateData.State = SStateData::STATE_RESTING;
+         m_sStateData.State = SStateData::STATE_CHARGING;
          m_sStateData.TimeSearchingForPlaceInNest = 0;
          m_eLastExplorationResult = LAST_EXPLORATION_NONE;
          return;
