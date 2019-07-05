@@ -121,7 +121,7 @@ void CForagingLoopFunctions::PreStep() {
 
 //        std::cout << battery.GetParent().GetId() << std::endl;
 
-//        battery.SetAvailableCharge(0.5);
+        battery.SetAvailableCharge(0.5);
 
     }
 

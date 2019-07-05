@@ -261,7 +261,7 @@ void CFootBotForaging::ControlStep() {
 void CFootBotForaging::Charge() {
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-    //battery.SetAvailableCharge(0.5);
+    battery.SetAvailableCharge(0.6);
     if(!m_sStateData.Saved) {
         file.open(buffer, std::ios::app);
         file << "Battery level (nest): " << reading.AvailableCharge << " battery itself: "
@@ -543,7 +543,7 @@ void CFootBotForaging::Explore() {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.99501 && reading.AvailableCharge >= 0.995){
+   else if(reading.AvailableCharge <= 0.99501){ //} && reading.AvailableCharge >= 0.995){
        bReturnToNest = true;
    }
    /* Test the second condition: we probabilistically switch to 'return to
