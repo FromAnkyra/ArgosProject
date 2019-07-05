@@ -122,7 +122,7 @@ public:
     * Contains all the state information about the controller.
     */
    struct SStateData {
-      /* The three possible states in which the controller can be */
+      /* The four possible states in which the controller can be */
       enum EState {
          STATE_RESTING = 0,
          STATE_EXPLORING,
@@ -132,6 +132,7 @@ public:
 
       /* True when the robot is in the nest */
       bool InNest;
+      bool Saved;
 
       /* Initial probability to switch from resting to exploring */
       Real InitialRestToExploreProb;
@@ -311,6 +312,8 @@ private:
    CCI_FootBotMotorGroundSensor* m_pcGround;
 
    CCI_BatterySensor* battery_sensor;
+
+   CBatteryEquippedEntity battery;
 
 
    /* The random number generator */

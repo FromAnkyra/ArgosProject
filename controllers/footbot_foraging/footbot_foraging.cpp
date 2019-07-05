@@ -1,3 +1,12 @@
+//#include "foraging_loop_functions.h"
+#include <argos3/core/simulator/simulator.h>
+#include <argos3/core/utility/configuration/argos_configuration.h>
+#include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
+#include <controllers/footbot_foraging/footbot_foraging.h>
+#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+
+
+
 /* Include the controller definition */
 #include "footbot_foraging.h"
 /* Function definitions for XML parsing */
@@ -7,7 +16,7 @@
 /* Logging */
 #include <argos3/core/utility/logging/argos_log.h>
 
-#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+//#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
 
 #include "/home/michal/argos3-examples/loop_functions/foraging_loop_functions/foraging_loop_functions.h"
 
@@ -26,7 +35,8 @@ char buffer [80];
 std::string id;
 
 typedef std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
-uint32_t seed_val;           // populate somehow
+//uint32_t seed_val;           // populate somehow
+time_t seed_val = time(0);
 
 MyRNG rng;                   // e.g. keep one global instance (per thread)
 void initialize()
@@ -115,6 +125,7 @@ void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
 void CFootBotForaging::SStateData::Reset() {
    State = STATE_RESTING;
    InNest = true;
+   Saved = false;
    RestToExploreProb = InitialRestToExploreProb;
    ExploreToRestProb = InitialExploreToRestProb;
    TimeExploringUnsuccessfully = 0;
@@ -138,6 +149,7 @@ CFootBotForaging::CFootBotForaging() :
    m_pcProximity(NULL),
    m_pcLight(NULL),
    m_pcGround(NULL),
+   battery(NULL),
    m_pcRNG(NULL) {}
 
 /****************************************/
@@ -156,6 +168,10 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       m_pcLight     = GetSensor  <CCI_FootBotLightSensor          >("footbot_light"        );
       m_pcGround    = GetSensor  <CCI_FootBotMotorGroundSensor    >("footbot_motor_ground" );
       battery_sensor    = GetSensor  <CCI_BatterySensor    >("battery" );
+
+//       for(auto& map_element : batteries) {
+//           battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+//       }
       /*
        * Parse XML parameters
        */
@@ -179,6 +195,8 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
            std::cout<<"Success"<<std::endl;
        }
        srand((int)time(0));
+
+       initialize();
 
    }
    catch(CARGoSException& ex) {
@@ -243,9 +261,14 @@ void CFootBotForaging::ControlStep() {
 void CFootBotForaging::Charge() {
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-    file.open (buffer, std::ios::app);
-    file<<"Battery level (nest): "<< reading.AvailableCharge << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-    file.close();
+    //battery.SetAvailableCharge(0.5);
+    if(!m_sStateData.Saved) {
+        file.open(buffer, std::ios::app);
+        file << "Battery level (nest): " << reading.AvailableCharge << " battery itself: "
+             << battery.GetAvailableCharge() << " robot id: " << GetId() << std::endl;
+        file.close();
+        m_sStateData.Saved = true;
+    }
 
 }
 
@@ -468,6 +491,7 @@ void CFootBotForaging::Explore() {
     *    in this case, the switch is probabilistic
     */
    bool bReturnToNest(false);
+    m_sStateData.Saved = false;
    /*
     * Test the first condition: have we found a food item?
     * NOTE: the food data is updated by the loop functions, so
@@ -494,34 +518,32 @@ void CFootBotForaging::Explore() {
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
    std::cout << "Battery level: " << reading.AvailableCharge << std::endl;
-   double iu = 0.0;
-   iu = reading.AvailableCharge;
+
 
 
    int Probablity = uint_dist100(rng);
 
-   if(reading.AvailableCharge <= 0.99001 && reading.AvailableCharge >= 0.99) {
-       std::cout << "OLE" << std::endl;
+   if(reading.AvailableCharge <= 0.99901 && reading.AvailableCharge >= 0.999) {
        if (Probablity >= 80) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.98001 && reading.AvailableCharge >= 0.98){
+   else if(reading.AvailableCharge <= 0.99801 && reading.AvailableCharge >= 0.998){
        if (Probablity >= 70) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.97001 && reading.AvailableCharge >= 0.97){
+   else if(reading.AvailableCharge <= 0.99701 && reading.AvailableCharge >= 0.997){
        if (Probablity >= 60) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.96001 && reading.AvailableCharge >= 0.96){
+   else if(reading.AvailableCharge <= 0.99601 && reading.AvailableCharge >= 0.996){
        if (Probablity >= 50) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.95001 && reading.AvailableCharge >= 0.95){
+   else if(reading.AvailableCharge <= 0.99501 && reading.AvailableCharge >= 0.995){
        bReturnToNest = true;
    }
    /* Test the second condition: we probabilistically switch to 'return to
@@ -550,14 +572,14 @@ void CFootBotForaging::Explore() {
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
 
-      file.open (buffer, std::ios::app);
-      file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-      file.close();
+//      file.open (buffer, std::ios::app);
+//      file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+//      file.close();
    }
    else {
-       file.open (buffer, std::ios::app);
-       file<<" probability: " << Probablity << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-       file.close();
+//       file.open (buffer, std::ios::app);
+//       file<<" probability: " << Probablity << " ID: " << GetId() << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
+//       file.close();
       /* No, perform the actual exploration */
       ++m_sStateData.TimeExploringUnsuccessfully;
       UpdateState();
