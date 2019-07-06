@@ -108,6 +108,10 @@ void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
       GetNodeAttribute(t_node, "minimum_resting_time", MinimumRestingTime);
       GetNodeAttribute(t_node, "minimum_unsuccessful_explore_time", MinimumUnsuccessfulExploreTime);
       GetNodeAttribute(t_node, "minimum_search_for_place_in_nest_time", MinimumSearchForPlaceInNestTime);
+      GetNodeAttribute(t_node, "met_robots_factor", MetRobotsFactor);
+      GetNodeAttribute(t_node, "met_continuing_robots", MetContinuingRobots);
+      GetNodeAttribute(t_node, "met_returning_robots", MetReturningRobots);
+
 
    }
    catch(CARGoSException& ex) {
@@ -278,8 +282,10 @@ void CFootBotForaging::Reset() {
    m_pcLEDs->SetAllColors(CColor::RED);
    /* Clear up the last exploration result */
    m_eLastExplorationResult = LAST_EXPLORATION_NONE;
+   m_eChargingResult = CONTINUING_TASK;
    m_pcRABA->ClearData();
-   m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
+   m_pcRABA->SetData(0, 1);
+   m_pcRABA->SetData(1, CONTINUING_TASK);
 
 }
 
@@ -447,31 +453,31 @@ void CFootBotForaging::Rest() {
       ++m_sStateData.TimeRested;
       /* Be sure not to send the last exploration result multiple times */
       if(m_sStateData.TimeRested == 1) {
-         m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
+//         m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
       }
       /*
        * Social rule: listen to what other people have found and modify
        * probabilities accordingly
        */
-      const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
-      for(size_t i = 0; i < tPackets.size(); ++i) {
-         switch(tPackets[i].Data[0]) {
-            case LAST_EXPLORATION_SUCCESSFUL: {
-               m_sStateData.RestToExploreProb += m_sStateData.SocialRuleRestToExploreDeltaProb;
-               m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-               m_sStateData.ExploreToRestProb -= m_sStateData.SocialRuleExploreToRestDeltaProb;
-               m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-               break;
-            }
-            case LAST_EXPLORATION_UNSUCCESSFUL: {
-               m_sStateData.ExploreToRestProb += m_sStateData.SocialRuleExploreToRestDeltaProb;
-               m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-               m_sStateData.RestToExploreProb -= m_sStateData.SocialRuleRestToExploreDeltaProb;
-               m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-               break;
-            }
-         }
-      }
+//      const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
+//      for(size_t i = 0; i < tPackets.size(); ++i) {
+//         switch(tPackets[i].Data[0]) {
+//            case LAST_EXPLORATION_SUCCESSFUL: {
+//               m_sStateData.RestToExploreProb += m_sStateData.SocialRuleRestToExploreDeltaProb;
+//               m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
+//               m_sStateData.ExploreToRestProb -= m_sStateData.SocialRuleExploreToRestDeltaProb;
+//               m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
+//               break;
+//            }
+//            case LAST_EXPLORATION_UNSUCCESSFUL: {
+//               m_sStateData.ExploreToRestProb += m_sStateData.SocialRuleExploreToRestDeltaProb;
+//               m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
+//               m_sStateData.RestToExploreProb -= m_sStateData.SocialRuleRestToExploreDeltaProb;
+//               m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
+//               break;
+//            }
+//         }
+//      }
    }
 }
 
@@ -509,16 +515,40 @@ void CFootBotForaging::Explore() {
       file.close();
    }
 
+
+   /*
+    * Social rule: listen to what other people have found and modify
+    * probabilities accordingly
+    */
+   const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
+   for(size_t i = 0; i < tPackets.size(); ++i) {
+       if(tPackets[i].Data[0] == 0) {
+           switch (tPackets[i].Data[1]) {
+               case CONTINUING_TASK: {
+                   m_sStateData.MetContinuingRobots++;
+                   break;
+               }
+               case NAVIGATING_TO_DOCKING_STATION: {
+                   m_sStateData.MetReturningRobots++;
+                   break;
+               }
+               default: {
+                   break;
+               }
+           }
+       }
+   }
+   std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << std::endl;
+
+
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
-
-
+//   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
    int Probablity = uint_dist100(rng);
 
    if(reading.AvailableCharge <= 0.99001 && reading.AvailableCharge >= 0.99) {
-       if (Probablity >= 80) {
+       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -565,6 +595,10 @@ void CFootBotForaging::Explore() {
       m_sStateData.TimeSearchingForPlaceInNest = 0;
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
+      m_eChargingResult = NAVIGATING_TO_DOCKING_STATION;
+      std::string id = GetId();
+      m_pcRABA->SetData(0, 1);
+      m_pcRABA->SetData(1, m_eChargingResult);
 
       file.open (buffer, std::ios::app);
       file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << std::endl;
@@ -627,7 +661,8 @@ void CFootBotForaging::ReturnToNest() {
          /* Yes, stop the wheels... */
          m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
          /* Tell people about the last exploration attempt */
-         m_pcRABA->SetData(0, m_eLastExplorationResult);
+//         m_pcRABA->SetData(0, m_eLastExplorationResult);
+//         std::cout << "elo_elo: " << m_pcRABA << std::endl;
          /* ... and switch to state 'resting' */
          m_pcLEDs->SetAllColors(CColor::RED);
          m_sStateData.State = SStateData::STATE_CHARGING;

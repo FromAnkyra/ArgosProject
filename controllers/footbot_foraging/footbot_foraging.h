@@ -138,6 +138,14 @@ public:
       Real ChargingInitialValue;
       /* Time when the robot start charging */
       Real ChargingInitialTime;
+      /* */
+      Real MetRobotsFactor;
+      /* */
+      Real MetContinuingRobots;
+      /* */
+      Real MetReturningRobots;
+
+
       /* Initial probability to switch from resting to exploring */
       Real InitialRestToExploreProb;
       /* Current probability to switch from resting to exploring */
@@ -332,6 +340,13 @@ private:
       LAST_EXPLORATION_SUCCESSFUL,  // the last exploration resulted in a food item found
       LAST_EXPLORATION_UNSUCCESSFUL // no food found in the last exploration
    } m_eLastExplorationResult;
+
+    /* Used in the social rule to communicate the current state of
+     * the robot */
+    enum EChargingResult {
+        NAVIGATING_TO_DOCKING_STATION,  // the robot goes to the charging area
+        CONTINUING_TASK,  // the robot continues task
+    } m_eChargingResult;
 
    /* The controller state information */
    SStateData m_sStateData;
