@@ -37,6 +37,7 @@
         <footbot_motor_ground implementation="rot_z_only" />
         <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
         <battery implementation="default"/>
+<!--        <battery implementation="default" noise_range="0.3:0.4"/>-->
       </sensors>
       <params>
         <diffusion go_straight_angle_range="-5:5"
@@ -127,7 +128,8 @@
       <entity quantity="10" max_trials="100">
         <foot-bot id="fb" rab_range="0.5">
           <controller config="ffc" />
-          <battery model="time" time_factor="-1e-5"/>
+<!--          <battery model="time" time_factor="-1e-5"/>-->
+          <battery model="time_motion" time_factor="1e-5" pos_factor="1e-3" orient_factor="1e-3" />
         </foot-bot>
       </entity>
     </distribute>

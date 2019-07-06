@@ -134,6 +134,10 @@ public:
       bool InNest;
       bool Saved;
 
+      /* Value of the robot's battery at the beginning of charging */
+      Real ChargingInitialValue;
+      /* Time when the robot start charging */
+      Real ChargingInitialTime;
       /* Initial probability to switch from resting to exploring */
       Real InitialRestToExploreProb;
       /* Current probability to switch from resting to exploring */
@@ -314,6 +318,8 @@ private:
    CCI_BatterySensor* battery_sensor;
 
    CBatteryEquippedEntity battery;
+
+   //CSpace* getSimulationClock;
 
 
    /* The random number generator */

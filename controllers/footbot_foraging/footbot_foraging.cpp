@@ -1,12 +1,3 @@
-//#include "foraging_loop_functions.h"
-#include <argos3/core/simulator/simulator.h>
-#include <argos3/core/utility/configuration/argos_configuration.h>
-#include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
-#include <controllers/footbot_foraging/footbot_foraging.h>
-#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
-
-
-
 /* Include the controller definition */
 #include "footbot_foraging.h"
 /* Function definitions for XML parsing */
@@ -16,7 +7,9 @@
 /* Logging */
 #include <argos3/core/utility/logging/argos_log.h>
 
-//#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+#include <argos3/core/simulator/simulator.h>
+#include <argos3/core/simulator/space/space.h>
 
 #include "/home/michal/argos3-examples/loop_functions/foraging_loop_functions/foraging_loop_functions.h"
 
@@ -169,9 +162,6 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
       m_pcGround    = GetSensor  <CCI_FootBotMotorGroundSensor    >("footbot_motor_ground" );
       battery_sensor    = GetSensor  <CCI_BatterySensor    >("battery" );
 
-//       for(auto& map_element : batteries) {
-//           battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
-//       }
       /*
        * Parse XML parameters
        */
@@ -194,6 +184,8 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
        {
            std::cout<<"Success"<<std::endl;
        }
+       file.close();
+
        srand((int)time(0));
 
        initialize();
@@ -215,23 +207,6 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 /****************************************/
 
 void CFootBotForaging::ControlStep() {
-
-
-//    CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
-//    battery.GetParent().GetId()
-
-//    CSpace::TMapPerType& batteries = GetSpace().GetEntitiesByType("battery");
-//
-//    for(auto& map_element : batteries)
-//    {
-//        CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
-//
-////        std::cout << battery.GetParent().GetId() << std::endl;
-//
-//        battery.SetAvailableCharge(0.5);
-//
-//    }
-
    switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
          Rest();
@@ -260,15 +235,34 @@ void CFootBotForaging::ControlStep() {
 
 void CFootBotForaging::Charge() {
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
+    Real CurrentTime = CSimulator::GetInstance().GetSpace().GetSimulationClock();
 
-    battery.SetAvailableCharge(0.6);
     if(!m_sStateData.Saved) {
         file.open(buffer, std::ios::app);
-        file << "Battery level (nest): " << reading.AvailableCharge << " battery itself: "
-             << battery.GetAvailableCharge() << " robot id: " << GetId() << std::endl;
+        file << "Battery level (nest): " << reading.AvailableCharge << " robot id: " << GetId() << " time: " << CurrentTime << std::endl;
         file.close();
+        m_sStateData.ChargingInitialTime = CurrentTime;
+        m_sStateData.ChargingInitialValue = 100000 * (1 - reading.AvailableCharge);
         m_sStateData.Saved = true;
     }
+
+    CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+    if(m_sStateData.ChargingInitialValue < (CurrentTime - m_sStateData.ChargingInitialTime)) {
+        for (auto &map_element : batteries) {
+            CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+            std::string id;
+            id = battery.GetRootEntity().GetId();
+            if (GetId() == battery.GetRootEntity().GetId()) {
+                battery.SetAvailableCharge(1);
+            }
+        }
+
+        m_pcLEDs->SetAllColors(CColor::GREEN);
+        m_sStateData.State = SStateData::STATE_EXPLORING;
+        m_sStateData.TimeRested = 0;
+    }
+
+    std::cout << GetId()  << " Battery charged level: " << reading.AvailableCharge << std::endl;
 
 }
 
@@ -510,40 +504,40 @@ void CFootBotForaging::Explore() {
 //      bReturnToNest = true;
       FoundItems++;
 //      std::cout << FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-//      file.open (buffer, std::ios::app);
-//      file<<"Number of found food items: "<< FoundItems << " ID: " << id << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-//      file.close();
+      file.open (buffer, std::ios::app);
+      file<<"Number of found food items: "<< FoundItems << " ID: " << id << " time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << std::endl;
+      file.close();
    }
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-   std::cout << "Battery level: " << reading.AvailableCharge << std::endl;
+   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
 
 
    int Probablity = uint_dist100(rng);
 
-   if(reading.AvailableCharge <= 0.99901 && reading.AvailableCharge >= 0.999) {
+   if(reading.AvailableCharge <= 0.99001 && reading.AvailableCharge >= 0.99) {
        if (Probablity >= 80) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.99801 && reading.AvailableCharge >= 0.998){
+   else if(reading.AvailableCharge <= 0.98001 && reading.AvailableCharge >= 0.98){
        if (Probablity >= 70) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.99701 && reading.AvailableCharge >= 0.997){
+   else if(reading.AvailableCharge <= 0.97001 && reading.AvailableCharge >= 0.97){
        if (Probablity >= 60) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.99601 && reading.AvailableCharge >= 0.996){
+   else if(reading.AvailableCharge <= 0.96001 && reading.AvailableCharge >= 0.96){
        if (Probablity >= 50) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.99501){ //} && reading.AvailableCharge >= 0.995){
+   else if(reading.AvailableCharge <= 0.95001){
        bReturnToNest = true;
    }
    /* Test the second condition: we probabilistically switch to 'return to
@@ -572,9 +566,9 @@ void CFootBotForaging::Explore() {
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
 
-//      file.open (buffer, std::ios::app);
-//      file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-//      file.close();
+      file.open (buffer, std::ios::app);
+      file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << std::endl;
+      file.close();
    }
    else {
 //       file.open (buffer, std::ios::app);
