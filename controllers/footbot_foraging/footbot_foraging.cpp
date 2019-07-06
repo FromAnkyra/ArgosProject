@@ -7,6 +7,10 @@
 /* Logging */
 #include <argos3/core/utility/logging/argos_log.h>
 
+#include <argos3/core/simulator/space/space.h>
+#include <argos3/core/simulator/simulator.h>
+#include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+
 /****************************************/
 /****************************************/
 
@@ -155,6 +159,15 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 /****************************************/
 
 void CFootBotForaging::ControlStep() {
+
+	CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+
+    for(auto& map_element : batteries)
+    {
+        CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
+
+        battery.SetAvailableCharge(0.75);
+    }	
 
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
