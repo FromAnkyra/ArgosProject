@@ -185,6 +185,7 @@ void CFootBotForaging::SStateData::Reset() {
       something happens, which is just a waste of time. */
    TimeRested = MinimumRestingTime;
    TimeSearchingForPlaceInNest = 0;
+   TimesChecked = 0;
 }
 
 /****************************************/
@@ -317,6 +318,7 @@ void CFootBotForaging::Charge() {
         m_pcLEDs->SetAllColors(CColor::GREEN);
         m_sStateData.State = SStateData::STATE_EXPLORING;
         m_sStateData.TimeRested = 0;
+        m_sStateData.TimesChecked = 0;
     }
 
     std::cout << GetId()  << " Battery charged level: " << reading.AvailableCharge << std::endl;
@@ -561,6 +563,19 @@ void CFootBotForaging::Explore() {
       m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
       /* Store the result of the expedition */
       m_eLastExplorationResult = LAST_EXPLORATION_SUCCESSFUL;
+
+       /* Discharging the robot's battery after picking a food item to simulate this task (equal to 10 minutes of operation -> 0.06)*/
+       CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+       if(m_sStateData.ChargingInitialValue < (CSimulator::GetInstance().GetSpace().GetSimulationClock() - m_sStateData.ChargingInitialTime)) {
+           for (auto &map_element : batteries) {
+               CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+               std::string id;
+               id = battery.GetRootEntity().GetId();
+               if (GetId() == battery.GetRootEntity().GetId()) {
+                   battery.SetAvailableCharge(battery.GetAvailableCharge()-0.006);
+               }
+           }
+       }
       /* Switch to 'return to nest' */
 //      bReturnToNest = true;
       FoundItems++;
@@ -603,26 +618,30 @@ void CFootBotForaging::Explore() {
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-//   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
+   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
    int Probablity = uint_dist100(rng);
 
-   if(reading.AvailableCharge <= 0.99001 && reading.AvailableCharge >= 0.99) {
+   if(reading.AvailableCharge <= 0.99001 && m_sStateData.TimesChecked == 0) {
+       m_sStateData.TimesChecked = 1;
        if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.98001 && reading.AvailableCharge >= 0.98){
+   else if(reading.AvailableCharge <= 0.98001 && m_sStateData.TimesChecked == 1){
+       m_sStateData.TimesChecked = 2;
        if (Probablity >= 70) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.97001 && reading.AvailableCharge >= 0.97){
+   else if(reading.AvailableCharge <= 0.97001 && m_sStateData.TimesChecked == 2){
+       m_sStateData.TimesChecked = 3;
        if (Probablity >= 60) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.96001 && reading.AvailableCharge >= 0.96){
+   else if(reading.AvailableCharge <= 0.96001 && m_sStateData.TimesChecked == 3){
+       m_sStateData.TimesChecked = 4;
        if (Probablity >= 50) {
            bReturnToNest = true;
        }

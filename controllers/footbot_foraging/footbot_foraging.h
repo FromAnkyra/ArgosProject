@@ -156,6 +156,8 @@ public:
       Real MetContinuingRobots;
       /* */
       Real MetReturningRobots;
+      /* How many times returning to the charging area was considered */
+      Real TimesChecked;
 
 
       /* Initial probability to switch from resting to exploring */
@@ -338,8 +340,6 @@ private:
    CCI_BatterySensor* battery_sensor;
 
    CBatteryEquippedEntity battery;
-
-   //CSpace* getSimulationClock;
 
 
    /* The random number generator */
