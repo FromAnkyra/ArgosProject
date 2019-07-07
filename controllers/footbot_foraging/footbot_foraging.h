@@ -134,6 +134,18 @@ public:
       bool InNest;
       bool Saved;
 
+      bool Robot0;
+      bool Robot1;
+      bool Robot2;
+      bool Robot3;
+      bool Robot4;
+      bool Robot5;
+      bool Robot6;
+      bool Robot7;
+      bool Robot8;
+      bool Robot9;
+      bool NewRobot;
+
       /* Value of the robot's battery at the beginning of charging */
       Real ChargingInitialValue;
       /* Time when the robot start charging */

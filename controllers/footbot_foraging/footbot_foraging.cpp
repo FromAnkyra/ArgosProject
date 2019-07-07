@@ -19,6 +19,9 @@
 #include <cstdlib>
 #include <random>
 
+#include <iostream>
+#include <sstream>
+
 /****************************************/
 /****************************************/
 
@@ -26,6 +29,7 @@ std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
 std::string id;
+int id_value;
 
 typedef std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
 //uint32_t seed_val;           // populate somehow
@@ -49,6 +53,34 @@ void CFootBotForaging::SFoodData::Reset() {
    HasFoodItem = false;
    FoodItemIdx = 0;
    TotalFoodItems = 0;
+}
+
+/****************************************/
+/****************************************/
+
+void extractIntegerWords(std::string str) {
+    std::stringstream ss;
+
+    /* Storing the whole string into string stream */
+    ss << str;
+
+    /* Running loop till the end of the stream */
+    std::string temp;
+    int found;
+    while (!ss.eof()) {
+
+        /* extracting word by word from stream */
+        ss >> temp;
+
+        /* Checking the given word is integer or not */
+        if (std::stringstream(temp) >> found)
+
+        /* To save from space at the end of string */
+        temp = "";
+    }
+    id_value = found;
+    std::cout << "Found id number: " << id_value << std::endl;
+//    return found;
 }
 
 /****************************************/
@@ -89,6 +121,26 @@ void CFootBotForaging::SWheelTurningParams::Init(TConfigurationNode& t_node) {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
    }
 }
+
+/****************************************/
+/****************************************/ //DODANE
+
+//void CFootBotForaging::SWheelTurningParams::Init(TConfigurationNode& t_node) {
+//    try {
+//        TurningMechanism = NO_TURN;
+//        CDegrees cAngle;
+//        GetNodeAttribute(t_node, "hard_turn_angle_threshold", cAngle);
+//        HardTurnOnAngleThreshold = ToRadians(cAngle);
+//        GetNodeAttribute(t_node, "soft_turn_angle_threshold", cAngle);
+//        SoftTurnOnAngleThreshold = ToRadians(cAngle);
+//        GetNodeAttribute(t_node, "no_turn_angle_threshold", cAngle);
+//        NoTurnAngleThreshold = ToRadians(cAngle);
+//        GetNodeAttribute(t_node, "max_speed", MaxSpeed);
+//    }
+//    catch(CARGoSException& ex) {
+//        THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
+//    }
+//}
 
 /****************************************/
 /****************************************/
@@ -250,6 +302,7 @@ void CFootBotForaging::Charge() {
         m_sStateData.Saved = true;
     }
 
+    /* Charging the robot's battery after specified time */
     CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
     if(m_sStateData.ChargingInitialValue < (CurrentTime - m_sStateData.ChargingInitialTime)) {
         for (auto &map_element : batteries) {
@@ -284,7 +337,9 @@ void CFootBotForaging::Reset() {
    m_eLastExplorationResult = LAST_EXPLORATION_NONE;
    m_eChargingResult = CONTINUING_TASK;
    m_pcRABA->ClearData();
-   m_pcRABA->SetData(0, 1);
+   id = GetId();
+   extractIntegerWords(id);
+   m_pcRABA->SetData(0, id_value);
    m_pcRABA->SetData(1, CONTINUING_TASK);
 
 }
@@ -522,7 +577,10 @@ void CFootBotForaging::Explore() {
     */
    const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
    for(size_t i = 0; i < tPackets.size(); ++i) {
-       if(tPackets[i].Data[0] == 0) {
+       std::cout << GetId() << " message: " << tPackets[i].Data[0] << " two: " << tPackets[i].Data[1] << std::endl;
+       if(tPackets[i].Data[0] == 100) {
+
+//       if(NewRobot) {
            switch (tPackets[i].Data[1]) {
                case CONTINUING_TASK: {
                    m_sStateData.MetContinuingRobots++;
@@ -536,10 +594,12 @@ void CFootBotForaging::Explore() {
                    break;
                }
            }
+//       }
        }
    }
-   std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << std::endl;
+   std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots <<  std::endl;
 
+   m_sStateData.MetRobotsFactor = 100 * (m_sStateData.MetReturningRobots / (m_sStateData.MetReturningRobots + m_sStateData.MetContinuingRobots));
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
@@ -596,8 +656,9 @@ void CFootBotForaging::Explore() {
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
       m_eChargingResult = NAVIGATING_TO_DOCKING_STATION;
-      std::string id = GetId();
-      m_pcRABA->SetData(0, 1);
+      id = GetId();
+      extractIntegerWords(id);
+      m_pcRABA->SetData(0, id_value);
       m_pcRABA->SetData(1, m_eChargingResult);
 
       file.open (buffer, std::ios::app);
