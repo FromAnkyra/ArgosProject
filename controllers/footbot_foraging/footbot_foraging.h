@@ -134,18 +134,6 @@ public:
       bool InNest;
       bool Saved;
 
-      bool Robot0;
-      bool Robot1;
-      bool Robot2;
-      bool Robot3;
-      bool Robot4;
-      bool Robot5;
-      bool Robot6;
-      bool Robot7;
-      bool Robot8;
-      bool Robot9;
-      bool NewRobot;
-
       /* Value of the robot's battery at the beginning of charging */
       Real ChargingInitialValue;
       /* Time when the robot start charging */
@@ -158,6 +146,8 @@ public:
       Real MetReturningRobots;
       /* How many times returning to the charging area was considered */
       Real TimesChecked;
+      /* Array for data from received messages*/
+      Real ReceivedData[10][2];
 
 
       /* Initial probability to switch from resting to exploring */
@@ -356,8 +346,8 @@ private:
     /* Used in the social rule to communicate the current state of
      * the robot */
     enum EChargingResult {
-        NAVIGATING_TO_DOCKING_STATION,  // the robot goes to the charging area
-        CONTINUING_TASK,  // the robot continues task
+        CONTINUING_TASK = 0,  // the robot continues task
+        NAVIGATING_TO_DOCKING_STATION  // the robot goes to the charging area
     } m_eChargingResult;
 
    /* The controller state information */
