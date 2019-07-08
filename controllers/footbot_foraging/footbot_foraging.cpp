@@ -38,10 +38,9 @@ int NumberChargingRobots;
 
 
 typedef std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
-//uint32_t seed_val;           // populate somehow
 time_t seed_val = time(0);
 
-MyRNG rng;                   // e.g. keep one global instance (per thread)
+MyRNG rng;
 void initialize()
 {
     rng.seed(seed_val);
@@ -64,6 +63,7 @@ void CFootBotForaging::SFoodData::Reset() {
 /****************************************/
 /****************************************/
 
+/* Extracting a robot's number from its full ID */
 void extractIntegerWords(std::string str) {
     std::stringstream ss;
 
@@ -85,8 +85,6 @@ void extractIntegerWords(std::string str) {
         temp = "";
     }
     id_value = found;
-    std::cout << "Found id number: " << id_value << std::endl;
-//    return found;
 }
 
 /****************************************/
@@ -129,26 +127,6 @@ void CFootBotForaging::SWheelTurningParams::Init(TConfigurationNode& t_node) {
 }
 
 /****************************************/
-/****************************************/ //DODANE
-
-//void CFootBotForaging::SWheelTurningParams::Init(TConfigurationNode& t_node) {
-//    try {
-//        TurningMechanism = NO_TURN;
-//        CDegrees cAngle;
-//        GetNodeAttribute(t_node, "hard_turn_angle_threshold", cAngle);
-//        HardTurnOnAngleThreshold = ToRadians(cAngle);
-//        GetNodeAttribute(t_node, "soft_turn_angle_threshold", cAngle);
-//        SoftTurnOnAngleThreshold = ToRadians(cAngle);
-//        GetNodeAttribute(t_node, "no_turn_angle_threshold", cAngle);
-//        NoTurnAngleThreshold = ToRadians(cAngle);
-//        GetNodeAttribute(t_node, "max_speed", MaxSpeed);
-//    }
-//    catch(CARGoSException& ex) {
-//        THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
-//    }
-//}
-
-/****************************************/
 /****************************************/
 
 CFootBotForaging::SStateData::SStateData() :
@@ -156,15 +134,6 @@ CFootBotForaging::SStateData::SStateData() :
 
 void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
    try {
-      GetNodeAttribute(t_node, "initial_rest_to_explore_prob", InitialRestToExploreProb);
-      GetNodeAttribute(t_node, "initial_explore_to_rest_prob", InitialExploreToRestProb);
-      GetNodeAttribute(t_node, "food_rule_explore_to_rest_delta_prob", FoodRuleExploreToRestDeltaProb);
-      GetNodeAttribute(t_node, "food_rule_rest_to_explore_delta_prob", FoodRuleRestToExploreDeltaProb);
-      GetNodeAttribute(t_node, "collision_rule_explore_to_rest_delta_prob", CollisionRuleExploreToRestDeltaProb);
-      GetNodeAttribute(t_node, "social_rule_rest_to_explore_delta_prob", SocialRuleRestToExploreDeltaProb);
-      GetNodeAttribute(t_node, "social_rule_explore_to_rest_delta_prob", SocialRuleExploreToRestDeltaProb);
-      GetNodeAttribute(t_node, "minimum_resting_time", MinimumRestingTime);
-      GetNodeAttribute(t_node, "minimum_unsuccessful_explore_time", MinimumUnsuccessfulExploreTime);
       GetNodeAttribute(t_node, "minimum_search_for_place_in_nest_time", MinimumSearchForPlaceInNestTime);
       GetNodeAttribute(t_node, "met_robots_factor", MetRobotsFactor);
       GetNodeAttribute(t_node, "met_continuing_robots", MetContinuingRobots);
@@ -181,15 +150,11 @@ void CFootBotForaging::SStateData::Reset() {
    State = STATE_RESTING;
    InNest = true;
    Saved = false;
-   RestToExploreProb = InitialRestToExploreProb;
-   ExploreToRestProb = InitialExploreToRestProb;
-   TimeExploringUnsuccessfully = 0;
    /* Initially the robot is resting, and by setting RestingTime to
       MinimumRestingTime we force the robots to make a decision at the
       experiment start. If instead we set RestingTime to zero, we would
       have to wait till RestingTime reaches MinimumRestingTime before
       something happens, which is just a waste of time. */
-   TimeRested = MinimumRestingTime;
    TimeSearchingForPlaceInNest = 0;
    TimesChecked = 0;
 }
@@ -238,9 +203,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
        time_t t = time(0);   // get time now
        struct tm * now = localtime( & t );
 
-
        strftime (buffer,80,"experiments_data/%Y-%m-%d/%R",now);
-
 
        file.open (buffer);
        if(file.is_open())
@@ -250,7 +213,6 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
        file.close();
 
        srand((int)time(0));
-
        initialize();
 
    }
@@ -291,6 +253,8 @@ void CFootBotForaging::ControlStep() {
          LOGERR << "We can't be here, there's a bug!" << std::endl;
       }
    }
+
+   /* Saving data to file */
    if(GetId() == "fb 0") {
        file.open(buffer, std::ios::app);
        file << "Time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << " Exploring: "
@@ -318,20 +282,17 @@ void CFootBotForaging::ControlStep() {
 
 void CFootBotForaging::Charge() {
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
-    Real CurrentTime = CSimulator::GetInstance().GetSpace().GetSimulationClock();
+//    Real CurrentTime = CSimulator::GetInstance().GetSpace().GetSimulationClock();         // variable used in the "instant" charging mode
 
     if(!m_sStateData.Saved) {
-//        file.open(buffer, std::ios::app);
-//        file << "Battery level (nest): " << reading.AvailableCharge << " robot id: " << GetId() << " time: " << CurrentTime << std::endl;
-//        file.close();
-        m_sStateData.ChargingInitialTime = CurrentTime;
-        m_sStateData.ChargingInitialValue = 100000 * (1 - reading.AvailableCharge);
+//        m_sStateData.ChargingInitialTime = CurrentTime;                                   // variable used in the "instant" charging mode
+//        m_sStateData.ChargingInitialValue = 100000 * (1 - reading.AvailableCharge);       // variable used in the "instant" charging mode
         m_sStateData.Saved = true;
         NumberChargingRobots++;
         NumberExploringRobots--;
     }
 
-//    /* Charging the robot's battery after specified time */
+//    /* Charging the robot's battery after specified time nd returning to the exploring mode afterwards */
 //    CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
 //    if(m_sStateData.ChargingInitialValue < (CurrentTime - m_sStateData.ChargingInitialTime)) {
 //        for (auto &map_element : batteries) {
@@ -345,7 +306,6 @@ void CFootBotForaging::Charge() {
 //
 //        m_pcLEDs->SetAllColors(CColor::GREEN);
 //        m_sStateData.State = SStateData::STATE_EXPLORING;
-//        m_sStateData.TimeRested = 0;
 //        m_sStateData.TimesChecked = 0;
 //        for(int j = 0; j < SwarmSize; j++){
 //            m_sStateData.ReceivedData[j][0] = 0;
@@ -353,8 +313,7 @@ void CFootBotForaging::Charge() {
 //        }
 //    }
 
-
-/* Charging the robot's battery after specified time */
+/* Charging the robot's battery gradually and returning to the exploring mode after specified time */
     CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
 
     for (auto &map_element : batteries) {
@@ -368,10 +327,8 @@ void CFootBotForaging::Charge() {
 
     CCI_BatterySensor::SReading readingg = battery_sensor->GetReading();
     if(readingg.AvailableCharge >= 0.99999) {
-
         m_pcLEDs->SetAllColors(CColor::GREEN);
         m_sStateData.State = SStateData::STATE_EXPLORING;
-        m_sStateData.TimeRested = 0;
         m_sStateData.TimesChecked = 0;
         for(int j = 0; j < SwarmSize; j++){
             m_sStateData.ReceivedData[j][0] = 0;
@@ -381,8 +338,7 @@ void CFootBotForaging::Charge() {
         NumberExploringRobots++;
     }
 
-    std::cout << GetId()  << " Battery charged level: " << reading.AvailableCharge << std::endl;
-
+//    std::cout << GetId()  << " Battery charged level: " << reading.AvailableCharge << std::endl;
 }
 
 /****************************************/
@@ -396,14 +352,12 @@ void CFootBotForaging::Reset() {
    /* Set LED color */
    m_pcLEDs->SetAllColors(CColor::RED);
    /* Clear up the last exploration result */
-   m_eLastExplorationResult = LAST_EXPLORATION_NONE;
    m_eChargingResult = CONTINUING_TASK;
    m_pcRABA->ClearData();
    id = GetId();
    extractIntegerWords(id);
    m_pcRABA->SetData(0, id_value);
    m_pcRABA->SetData(1, m_eChargingResult);
-
 }
 
 /****************************************/
@@ -423,7 +377,7 @@ void CFootBotForaging::UpdateState() {
     * The foot-bot has 4 sensors like this, two in the front
     * (corresponding to readings 0 and 1) and two in the back
     * (corresponding to reading 2 and 3).  Here we want the back sensors
-    * (readings 2 and 3) to tell us whether we are on gray: if so, the
+    * (readings 2 and 3) to tell us whether we are on gray: if so, the              //Changed in order to completely avoid charging area
     * robot is completely in the nest, otherwise it's outside.
     */
    if((tGroundReads[0].Value > 0.25f &&
@@ -556,46 +510,8 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
 /****************************************/
 
 void CFootBotForaging::Rest() {
-
-
-   /* If we have stayed here enough, probabilistically switch to
-    * 'exploring' */
-   if(m_sStateData.TimeRested > m_sStateData.MinimumRestingTime &&
-      m_pcRNG->Uniform(m_sStateData.ProbRange) < m_sStateData.RestToExploreProb) {
-      m_pcLEDs->SetAllColors(CColor::GREEN);
-      m_sStateData.State = SStateData::STATE_EXPLORING;
-      m_sStateData.TimeRested = 0;
-   }
-   else {
-      ++m_sStateData.TimeRested;
-      /* Be sure not to send the last exploration result multiple times */
-      if(m_sStateData.TimeRested == 1) {
-//         m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
-      }
-      /*
-       * Social rule: listen to what other people have found and modify
-       * probabilities accordingly
-       */
-//      const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
-//      for(size_t i = 0; i < tPackets.size(); ++i) {
-//         switch(tPackets[i].Data[0]) {
-//            case LAST_EXPLORATION_SUCCESSFUL: {
-//               m_sStateData.RestToExploreProb += m_sStateData.SocialRuleRestToExploreDeltaProb;
-//               m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-//               m_sStateData.ExploreToRestProb -= m_sStateData.SocialRuleExploreToRestDeltaProb;
-//               m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-//               break;
-//            }
-//            case LAST_EXPLORATION_UNSUCCESSFUL: {
-//               m_sStateData.ExploreToRestProb += m_sStateData.SocialRuleExploreToRestDeltaProb;
-//               m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-//               m_sStateData.RestToExploreProb -= m_sStateData.SocialRuleRestToExploreDeltaProb;
-//               m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-//               break;
-//            }
-//         }
-//      }
-   }
+    m_pcLEDs->SetAllColors(CColor::GREEN);
+    m_sStateData.State = SStateData::STATE_EXPLORING;
 }
 
 /****************************************/
@@ -615,36 +531,18 @@ void CFootBotForaging::Explore() {
     * here we just need to read it
     */
    if(m_sFoodData.HasFoodItem) {
-      /* Apply the food rule, decreasing ExploreToRestProb and increasing
-       * RestToExploreProb */
-      m_sStateData.ExploreToRestProb -= m_sStateData.FoodRuleExploreToRestDeltaProb;
-      m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-      m_sStateData.RestToExploreProb += m_sStateData.FoodRuleRestToExploreDeltaProb;
-      m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-      /* Store the result of the expedition */
-      m_eLastExplorationResult = LAST_EXPLORATION_SUCCESSFUL;
-
        /* Discharging the robot's battery after picking a food item to simulate this task (equal to 10 minutes of operation -> 0.06)*/
-       CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
-       if(m_sStateData.ChargingInitialValue < (CSimulator::GetInstance().GetSpace().GetSimulationClock() - m_sStateData.ChargingInitialTime)) {
-           for (auto &map_element : batteries) {
-               CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
-               std::string id;
-               id = battery.GetRootEntity().GetId();
-               if (GetId() == battery.GetRootEntity().GetId()) {
-                   battery.SetAvailableCharge(battery.GetAvailableCharge()-0.006);
-               }
+       CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+       for (auto &map_element : batteries) {
+           CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+           std::string id;
+           id = battery.GetRootEntity().GetId();
+           if (GetId() == battery.GetRootEntity().GetId()) {
+               battery.SetAvailableCharge(battery.GetAvailableCharge() - 0.006);
            }
        }
-      /* Switch to 'return to nest' */
-//      bReturnToNest = true;
-      FoundItems++;
-//      std::cout << FoundItems << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-//      file.open (buffer, std::ios::app);
-//      file << " Food items: "<< FoundItems << std::endl; //" ID: " << id << " time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << std::endl;
-//      file.close();
+       FoundItems++;
    }
-
 
    /*
     * Social rule: listen to what other people have found and modify
@@ -652,8 +550,6 @@ void CFootBotForaging::Explore() {
     */
    const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
    for(size_t i = 0; i < tPackets.size(); ++i) {
-//       std::cout << GetId() << " message: " << tPackets[i].Data[0] << " two: " << tPackets[i].Data[1] << " packet_size: " << tPackets.size() << std::endl;
-
        switch (tPackets[i].Data[1]) {
            case CONTINUING_TASK: {
                m_sStateData.ReceivedData[tPackets[i].Data[0]][0]++;       //increase number of times of meeting an exploring robot
@@ -668,20 +564,7 @@ void CFootBotForaging::Explore() {
                break;
            }
        }
-
-
    }
-
-//    std::cout << GetId() << " received data0: " << m_sStateData.ReceivedData[0][1] << std::endl;
-//    std::cout << GetId() << " received data1: " << m_sStateData.ReceivedData[1][1] << std::endl;
-//    std::cout << GetId() << " received data2: " << m_sStateData.ReceivedData[2][1] << std::endl;
-//    std::cout << GetId() << " received data3: " << m_sStateData.ReceivedData[3][1] << std::endl;
-//    std::cout << GetId() << " received data4: " << m_sStateData.ReceivedData[4][1] << std::endl;
-//    std::cout << GetId() << " received data5: " << m_sStateData.ReceivedData[5][1] << std::endl;
-//    std::cout << GetId() << " received data6: " << m_sStateData.ReceivedData[6][1] << std::endl;
-//    std::cout << GetId() << " received data7: " << m_sStateData.ReceivedData[7][1] << std::endl;
-//    std::cout << GetId() << " received data8: " << m_sStateData.ReceivedData[8][1] << std::endl;
-//    std::cout << GetId() << " received data9: " << m_sStateData.ReceivedData[9][1] << std::endl;
 
    m_sStateData.MetContinuingRobots = 0;
    m_sStateData.MetReturningRobots = 0;
@@ -702,7 +585,7 @@ void CFootBotForaging::Explore() {
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
+//   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
    int Probablity = uint_dist100(rng);
 
@@ -733,28 +616,10 @@ void CFootBotForaging::Explore() {
    else if(reading.AvailableCharge <= 0.95001){
        bReturnToNest = true;
    }
-   /* Test the second condition: we probabilistically switch to 'return to
-    * nest' if we have been wandering for some time and found nothing */
-//   else if(m_sStateData.TimeExploringUnsuccessfully > m_sStateData.MinimumUnsuccessfulExploreTime) {
-//      if (m_pcRNG->Uniform(m_sStateData.ProbRange) < m_sStateData.ExploreToRestProb) {
-//         /* Store the result of the expedition */
-//         m_eLastExplorationResult = LAST_EXPLORATION_UNSUCCESSFUL;
-//         /* Switch to 'return to nest' */
-//         bReturnToNest = true;
-//      }
-//      else {
-//         /* Apply the food rule, increasing ExploreToRestProb and
-//          * decreasing RestToExploreProb */
-//         m_sStateData.ExploreToRestProb += m_sStateData.FoodRuleExploreToRestDeltaProb;
-//         m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-//         m_sStateData.RestToExploreProb -= m_sStateData.FoodRuleRestToExploreDeltaProb;
-//         m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-//      }
-//   }
+
    /* So, do we return to the nest now? */
    if(bReturnToNest) {
       /* Yes, we do! */
-      m_sStateData.TimeExploringUnsuccessfully = 0;
       m_sStateData.TimeSearchingForPlaceInNest = 0;
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
@@ -763,30 +628,14 @@ void CFootBotForaging::Explore() {
       extractIntegerWords(id);
       m_pcRABA->SetData(0, id_value);
       m_pcRABA->SetData(1, m_eChargingResult);
-
-//      file.open (buffer, std::ios::app);
-//      file<<"Battery level (to nest): "<< reading.AvailableCharge << " probability: " << Probablity << " time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << std::endl;
-//      file.close();
    }
    else {
-//       file.open (buffer, std::ios::app);
-//       file<<" probability: " << Probablity << " ID: " << GetId() << " time: " << m_sStateData.TimeExploringUnsuccessfully << std::endl;
-//       file.close();
       /* No, perform the actual exploration */
-      ++m_sStateData.TimeExploringUnsuccessfully;
       UpdateState();
       /* Get the diffusion vector to perform obstacle avoidance */
       bool bCollision;
       CVector2 cDiffusion = DiffusionVector(bCollision);
-      /* Apply the collision rule, if a collision avoidance happened */
-      if(bCollision) {
-         /* Collision avoidance happened, increase ExploreToRestProb and
-          * decrease RestToExploreProb */
-         m_sStateData.ExploreToRestProb += m_sStateData.CollisionRuleExploreToRestDeltaProb;
-         m_sStateData.ProbRange.TruncValue(m_sStateData.ExploreToRestProb);
-         m_sStateData.RestToExploreProb -= m_sStateData.CollisionRuleExploreToRestDeltaProb;
-         m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
-      }
+
       /*
        * If we are in the nest, we combine antiphototaxis with obstacle
        * avoidance
@@ -798,9 +647,6 @@ void CFootBotForaging::Explore() {
           * the light. Thus, the minus sign is because we want to go away
           * from the light.
           */
-//         BatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
-//         battery.GetParent().GetId()
-//         std::cout << "Robot no. : " << m_sStateData.State << " is in the nest." << std::endl;
          SetWheelSpeedsFromVector(
             m_sWheelTurningParams.MaxSpeed * cDiffusion -
             m_sWheelTurningParams.MaxSpeed * 1.0f * CalculateVectorToLight());
@@ -820,28 +666,36 @@ void CFootBotForaging::ReturnToNest() {
    UpdateState();
    /* Are we in the nest? */
    if(m_sStateData.InNest) {
-      /* Have we looked for a place long enough? */
-      if(m_sStateData.TimeSearchingForPlaceInNest > m_sStateData.MinimumSearchForPlaceInNestTime) {
-         /* Yes, stop the wheels... */
-         m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
-         /* Tell people about the last exploration attempt */
-//         m_pcRABA->SetData(0, m_eLastExplorationResult);
-//         std::cout << "elo_elo: " << m_pcRABA << std::endl;
-         /* ... and switch to state 'resting' */
-         m_pcLEDs->SetAllColors(CColor::RED);
-         m_sStateData.State = SStateData::STATE_CHARGING;
-         m_sStateData.TimeSearchingForPlaceInNest = 0;
-         m_eLastExplorationResult = LAST_EXPLORATION_NONE;
-         return;
-      }
-      else {
-         /* No, keep looking */
-         ++m_sStateData.TimeSearchingForPlaceInNest;
-      }
+       /* Have we looked for a place long enough? */
+       if (m_sStateData.TimeSearchingForPlaceInNest > m_sStateData.MinimumSearchForPlaceInNestTime) {
+           /* Yes, stop the wheels... */
+           m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+           /* ... and switch to state 'resting' */
+           m_pcLEDs->SetAllColors(CColor::RED);
+           m_sStateData.State = SStateData::STATE_CHARGING;
+           m_sStateData.TimeSearchingForPlaceInNest = 0;
+           return;
+       } else {
+           /* No, keep looking */
+           ++m_sStateData.TimeSearchingForPlaceInNest;
+       }
    }
    else {
-      /* Still outside the nest */
-      m_sStateData.TimeSearchingForPlaceInNest = 0;
+       /* Still outside the nest */
+       m_sStateData.TimeSearchingForPlaceInNest = 0;
+       if (m_sFoodData.HasFoodItem) {
+           /* Discharging the robot's battery after picking a food item to simulate this task (equal to 10 minutes of operation -> 0.06)*/
+           CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+           for (auto &map_element : batteries) {
+               CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+               std::string id;
+               id = battery.GetRootEntity().GetId();
+               if (GetId() == battery.GetRootEntity().GetId()) {
+                   battery.SetAvailableCharge(battery.GetAvailableCharge() - 0.006);
+               }
+           }
+           FoundItems++;
+       }
    }
    /* Keep going */
    bool bCollision;

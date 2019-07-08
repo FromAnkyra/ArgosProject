@@ -150,14 +150,6 @@ public:
       Real ReceivedData[10][2];
 
 
-      /* Initial probability to switch from resting to exploring */
-      Real InitialRestToExploreProb;
-      /* Current probability to switch from resting to exploring */
-      Real RestToExploreProb;
-      /* Initial probability to switch from exploring to resting */
-      Real InitialExploreToRestProb;
-      /* Current probability to switch from exploring to resting */
-      Real ExploreToRestProb;
       /* Used as a range for uniform number generation */
       CRange<Real> ProbRange;
       /* The increase of ExploreToRestProb due to the food rule */
@@ -170,16 +162,9 @@ public:
       Real SocialRuleRestToExploreDeltaProb;
       /* The increase of ExploreToRestProb due to the social rule */
       Real SocialRuleExploreToRestDeltaProb;
-      /* The minimum number of steps in resting state before the robots
-         starts thinking that it's time to move */
-      size_t MinimumRestingTime;
-      /* The number of steps in resting state */
-      size_t TimeRested;
       /* The number of exploration steps without finding food after which
          a foot-bot starts thinking about going back to the nest */
       size_t MinimumUnsuccessfulExploreTime;
-      /* The number of exploration steps without finding food */
-      size_t TimeExploringUnsuccessfully;
       /* If the robots switched to resting as soon as it enters the nest,
          there would be overcrowding of robots in the border between the
          nest and the rest of the arena. To overcome this issue, the robot

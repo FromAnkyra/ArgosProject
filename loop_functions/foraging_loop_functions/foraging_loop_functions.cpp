@@ -9,7 +9,7 @@
 /****************************************/
 /****************************************/
 
-//int FoundItems = 0;
+
 std::string id;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
@@ -54,9 +54,6 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
       GetNodeAttribute(tForaging, "energy_per_item", m_unEnergyPerFoodItem);
       /* Get energy loss per walking robot */
       GetNodeAttribute(tForaging, "energy_per_walking_robot", m_unEnergyPerWalkingRobot);
-
-
-
 
    }
    catch(CARGoSException& ex) {
@@ -110,28 +107,12 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
 /****************************************/
 
 void CForagingLoopFunctions::PreStep() {
-
-    CSpace::TMapPerType& batteries = GetSpace().GetEntitiesByType("battery");
-
-    for(auto& map_element : batteries)
-    {
-        CBatteryEquippedEntity& battery = *any_cast<CBatteryEquippedEntity*>(map_element.second);
-
-        id = battery.GetParent().GetId();
-
-//        std::cout << battery.GetParent().GetId() << std::endl;
-
-//        battery.SetAvailableCharge(0.5);
-
-    }
-
-
     /* Logic to pick and drop food items */
-   /*
-    * If a robot is in the nest, drop the food item
-    * If a robot is on a food item, pick it
-    * Each robot can carry only one food item per time
-    */
+    /*
+     * * If a robot is in the nest, drop the food item
+     * * If a robot is on a food item, pick it
+     * * Each robot can carry only one food item per time
+     * */
    UInt32 unWalkingFBs = 0;
    UInt32 unRestingFBs = 0;
    /* Check whether a robot is on a food item */
@@ -154,25 +135,19 @@ void CForagingLoopFunctions::PreStep() {
       CFootBotForaging::SFoodData& sFoodData = cController.GetFoodData();
       /* The foot-bot has a food item */
       if(sFoodData.HasFoodItem) {
-         /* Check whether the foot-bot is in the nest */
-//         if(cPos.GetX() < -1.0f) {
-            /* Place a new food item on the ground */
-            m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
-                                                  m_pcRNG->Uniform(m_cForagingArenaSideY));
-            /* Drop the food item */
-            sFoodData.HasFoodItem = false;
-            sFoodData.FoodItemIdx = 0;
-            ++sFoodData.TotalFoodItems;
-//            FoundItems++;
-//            std::cout << FoundItems << std::endl;
-            /* Increase the energy and food count */
-            m_nEnergy += m_unEnergyPerFoodItem;
-            ++m_unCollectedFood;
-            /* The floor texture must be updated */
-            m_pcFloor->SetChanged();
-
-
-//         }
+          /* Place a new food item on the ground */
+          m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
+                                                m_pcRNG->Uniform(m_cForagingArenaSideY));
+          /* Drop the food item */
+          sFoodData.HasFoodItem = false;
+          sFoodData.FoodItemIdx = 0;
+          ++sFoodData.TotalFoodItems;
+          /* Increase the energy and food count */
+          m_nEnergy += m_unEnergyPerFoodItem;
+          ++m_unCollectedFood;
+          /* The floor texture must be updated */
+          m_pcFloor->SetChanged();
+          std::cout << "Food items from loop: " << m_unCollectedFood << std::endl;
       }
       else {
          /* The foot-bot has no food item */
