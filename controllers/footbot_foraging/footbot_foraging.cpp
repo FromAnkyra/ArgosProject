@@ -54,14 +54,21 @@ std::uniform_int_distribution<uint32_t> uint_dist100(0,100); // range [0,10]
 CFootBotForaging::SFoodData::SFoodData() :
    HasFoodItem(false),
    is_exploring(false),
+   stuck(false),
+   previous_position(0,0),
    FoodItemIdx(0),
+   position_counter(1),
    TotalFoodItems(0) {}
+
 
 void CFootBotForaging::SFoodData::Reset() {
    HasFoodItem = false;
    is_exploring = false;
+   stuck = false;
+   previous_position.Set(0,0);
    FoodItemIdx = 0;
    TotalFoodItems = 0;
+   position_counter = 1;
 }
 
 /****************************************/
@@ -260,6 +267,10 @@ void CFootBotForaging::ControlStep() {
           Stop();
           break;
       }
+      case SStateData::STATE_STUCK: {
+          Stuck();
+          break;
+      }
       default: {
          LOGERR << "We can't be here, there's a bug!" << std::endl;
       }
@@ -362,7 +373,19 @@ void CFootBotForaging::Stop() {
     /* ... and switch to state 'stop' */
     m_pcLEDs->SetAllColors(CColor::RED);
     return;
+}
 
+/****************************************/
+/****************************************/
+
+void CFootBotForaging::Stuck() {
+    if(!m_sFoodData.stuck) {
+        m_pcLEDs->SetAllColors(CColor::GREEN);
+        m_sStateData.State = SStateData::STATE_EXPLORING;
+        m_sFoodData.is_exploring = true;
+    } else {
+        m_pcWheels->SetLinearVelocity(0.2f, -0.2f);
+    }
 }
 
 /****************************************/
@@ -607,6 +630,13 @@ void CFootBotForaging::Explore() {
 
 //   std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //   m_sStateData.MetRobotsFactor << std::endl;
+
+    if(m_sFoodData.stuck){
+        m_sStateData.State = SStateData::STATE_STUCK;
+        m_pcLEDs->SetAllColors(CColor::ORANGE);
+        m_sFoodData.is_exploring = false;
+        return;
+    }
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 

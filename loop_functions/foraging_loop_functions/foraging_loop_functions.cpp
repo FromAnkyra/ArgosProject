@@ -9,8 +9,8 @@
 /****************************************/
 /****************************************/
 
-
 std::string id;
+int mojojoj = 0;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
    m_cForagingArenaSideX(-0.9f, 1.7f),
@@ -107,6 +107,7 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
 /****************************************/
 
 void CForagingLoopFunctions::PreStep() {
+    mojojoj = 0;
     /* Logic to pick and drop food items */
     /*
      * * If a robot is in the nest, drop the food item
@@ -133,6 +134,10 @@ void CForagingLoopFunctions::PreStep() {
                cFootBot.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
       /* Get food data */
       CFootBotForaging::SFoodData& sFoodData = cController.GetFoodData();
+      if(sFoodData.position_counter == 1){
+          sFoodData.previous_position.Set(cFootBot.GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
+                                          cFootBot.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
+      }
       /* The foot-bot has a food item */
       if(sFoodData.HasFoodItem) {
           /* Place a new food item on the ground */
@@ -147,14 +152,33 @@ void CForagingLoopFunctions::PreStep() {
           ++m_unCollectedFood;
           /* The floor texture must be updated */
           m_pcFloor->SetChanged();
-          std::cout << "Food items from loop: " << m_unCollectedFood << std::endl;
+          std::cout << "Food items from loop: " << m_unCollectedFood << " position:" << cPos.GetX() << " position Y: " << cPos.GetY() << std::endl;
       }
       else {
          /* The foot-bot has no food item */
          /* Check whether the foot-bot is out of the nest */
+         if(sFoodData.position_counter == 99 && sFoodData.stuck){
+             sFoodData.stuck = false;
+         }else if(sFoodData.position_counter == 99 && !sFoodData.stuck){ //} && sFoodData.is_exploring) {
+             if (cPos.GetX() <= (sFoodData.previous_position.GetX() + 0.001) &&
+                 cPos.GetX() >= (sFoodData.previous_position.GetX() - 0.001) &&
+                 cPos.GetY() <= (sFoodData.previous_position.GetY() + 0.001) &&
+                 cPos.GetY() >= (sFoodData.previous_position.GetY() - 0.001)) {
+                 sFoodData.stuck = true;
+             } else {
+                 sFoodData.stuck = false;
+             }
+         }
+
+         if(sFoodData.position_counter == 99){
+             sFoodData.position_counter = 0;
+         }
+         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
+         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
          if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {
             /* Check whether the foot-bot is on a food item */
             bool bDone = false;
+
             for(size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i) {
                if((cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
                   /* If so, we move that item out of sight */
@@ -170,6 +194,9 @@ void CForagingLoopFunctions::PreStep() {
             }
          }
       }
+      sFoodData.position_counter++;
+
+      mojojoj++;
    }
    /* Update energy expediture due to walking robots */
    m_nEnergy -= unWalkingFBs * m_unEnergyPerWalkingRobot;

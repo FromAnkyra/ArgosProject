@@ -55,8 +55,11 @@ public:
    struct SFoodData {
       bool HasFoodItem;      // true when the robot is carrying a food item
       bool is_exploring;
+      bool stuck;
+      CVector2 previous_position;
       size_t FoodItemIdx;    // the index of the current food item in the array of available food items
       size_t TotalFoodItems; // the total number of food items carried by this robot during the experiment
+      size_t position_counter;
 
       SFoodData();
       void Reset();
@@ -129,7 +132,8 @@ public:
          STATE_EXPLORING,
          STATE_RETURN_TO_NEST,
          STATE_CHARGING,
-         STATE_STOP
+         STATE_STOP,
+         STATE_STUCK
       } State;
 
       /* True when the robot is in the nest */
@@ -301,6 +305,10 @@ private:
     * Executes the completely discharge state of of a robot.
     */
    void Stop();
+    /*
+     * Executes unstucking a robot.
+     */
+    void Stuck();
 
 private:
 
