@@ -152,7 +152,7 @@ void CForagingLoopFunctions::PreStep() {
       else {
          /* The foot-bot has no food item */
          /* Check whether the foot-bot is out of the nest */
-         if(cPos.GetX() > -1.0f) {
+         if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {
             /* Check whether the foot-bot is on a food item */
             bool bDone = false;
             for(size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i) {

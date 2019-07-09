@@ -31,6 +31,8 @@ char buffer [80];
 std::string id;
 int id_value;
 
+float battery_consume_per_food_item = 0.06;         // 0.06 is equal to ten minutes
+
 const int SwarmSize = 10;
 
 int NumberExploringRobots = SwarmSize;
@@ -51,11 +53,13 @@ std::uniform_int_distribution<uint32_t> uint_dist100(0,100); // range [0,10]
 
 CFootBotForaging::SFoodData::SFoodData() :
    HasFoodItem(false),
+   is_exploring(false),
    FoodItemIdx(0),
    TotalFoodItems(0) {}
 
 void CFootBotForaging::SFoodData::Reset() {
    HasFoodItem = false;
+   is_exploring = false;
    FoodItemIdx = 0;
    TotalFoodItems = 0;
 }
@@ -205,10 +209,13 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
 
        strftime (buffer,80,"experiments_data/%Y-%m-%d/%R",now);
 
-       file.open (buffer);
+       file.open (buffer, std::ios::app);
        if(file.is_open())
        {
            std::cout<<"Success"<<std::endl;
+       }
+       if(GetId() == "fb 0") {
+           file << "Number of robots: " << SwarmSize << std::endl;
        }
        file.close();
 
@@ -247,6 +254,10 @@ void CFootBotForaging::ControlStep() {
       }
       case SStateData::STATE_CHARGING: {
           Charge();
+          break;
+      }
+      case SStateData::STATE_STOP: {
+          Stop();
           break;
       }
       default: {
@@ -330,6 +341,7 @@ void CFootBotForaging::Charge() {
         m_pcLEDs->SetAllColors(CColor::GREEN);
         m_sStateData.State = SStateData::STATE_EXPLORING;
         m_sStateData.TimesChecked = 0;
+        m_sFoodData.is_exploring = true;
         for(int j = 0; j < SwarmSize; j++){
             m_sStateData.ReceivedData[j][0] = 0;
             m_sStateData.ReceivedData[j][1] = 0;
@@ -339,6 +351,18 @@ void CFootBotForaging::Charge() {
     }
 
 //    std::cout << GetId()  << " Battery charged level: " << reading.AvailableCharge << std::endl;
+}
+
+/****************************************/
+/****************************************/
+
+void CFootBotForaging::Stop() {
+    /*Stop the wheels... */
+    m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+    /* ... and switch to state 'stop' */
+    m_pcLEDs->SetAllColors(CColor::RED);
+    return;
+
 }
 
 /****************************************/
@@ -512,6 +536,7 @@ void CFootBotForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
 void CFootBotForaging::Rest() {
     m_pcLEDs->SetAllColors(CColor::GREEN);
     m_sStateData.State = SStateData::STATE_EXPLORING;
+    m_sFoodData.is_exploring = true;
 }
 
 /****************************************/
@@ -538,7 +563,7 @@ void CFootBotForaging::Explore() {
            std::string id;
            id = battery.GetRootEntity().GetId();
            if (GetId() == battery.GetRootEntity().GetId()) {
-               battery.SetAvailableCharge(battery.GetAvailableCharge() - 0.006);
+               battery.SetAvailableCharge(battery.GetAvailableCharge() - battery_consume_per_food_item);
            }
        }
        FoundItems++;
@@ -617,6 +642,13 @@ void CFootBotForaging::Explore() {
        bReturnToNest = true;
    }
 
+//   if(reading.AvailableCharge <= 0.0){
+//       m_pcLEDs->SetAllColors(CColor::RED);
+//       m_sStateData.State = SStateData::STATE_STOP;
+//       m_sFoodData.is_exploring = false;
+//       NumberExploringRobots--;
+//   }
+
    /* So, do we return to the nest now? */
    if(bReturnToNest) {
       /* Yes, we do! */
@@ -624,6 +656,7 @@ void CFootBotForaging::Explore() {
       m_pcLEDs->SetAllColors(CColor::BLUE);
       m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
       m_eChargingResult = NAVIGATING_TO_DOCKING_STATION;
+      m_sFoodData.is_exploring = false;
       id = GetId();
       extractIntegerWords(id);
       m_pcRABA->SetData(0, id_value);
