@@ -152,7 +152,7 @@ void CForagingLoopFunctions::PreStep() {
           ++m_unCollectedFood;
           /* The floor texture must be updated */
           m_pcFloor->SetChanged();
-          std::cout << "Food items from loop: " << m_unCollectedFood << " position:" << cPos.GetX() << " position Y: " << cPos.GetY() << std::endl;
+          std::cout << "Food items from loop: " << m_unCollectedFood << std::endl;
       }
       else {
          /* The foot-bot has no food item */
@@ -173,8 +173,8 @@ void CForagingLoopFunctions::PreStep() {
          if(sFoodData.position_counter == 99){
              sFoodData.position_counter = 0;
          }
-         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
-         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
+//         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
+//         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
          if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {
             /* Check whether the foot-bot is on a food item */
             bool bDone = false;

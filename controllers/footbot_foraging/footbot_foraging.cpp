@@ -28,6 +28,7 @@
 std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
+std::string title = "1 battery cycle; discharge 10 minutes per 1 collected item; number of food items: 5; ";
 std::string id;
 int id_value;
 
@@ -222,7 +223,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
            std::cout<<"Success"<<std::endl;
        }
        if(GetId() == "fb 0") {
-           file << "Number of robots: " << SwarmSize << std::endl;
+           file << "Title: " << title << "number of robots: " << SwarmSize << std::endl;
        }
        file.close();
 
@@ -640,7 +641,7 @@ void CFootBotForaging::Explore() {
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-//   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
+   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
    int Probablity = uint_dist100(rng);
 
