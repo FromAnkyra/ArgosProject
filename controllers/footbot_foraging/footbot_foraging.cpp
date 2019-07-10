@@ -28,7 +28,7 @@
 std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
-std::string title = "1 battery cycle; discharge 10 minutes per 1 collected item; number of food items: 5; ";
+std::string title = "12 hours long; discharge 10 minutes per 1 collected item; number of food items: 5; ";
 std::string id;
 int id_value;
 
@@ -280,9 +280,9 @@ void CFootBotForaging::ControlStep() {
    /* Saving data to file */
    if(GetId() == "fb 0") {
        file.open(buffer, std::ios::app);
-       file << "Time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << " Exploring: "
+       file << "Time: " << CSimulator::GetInstance().GetSpace().GetSimulationClock() << "; Exploring: "
             << NumberExploringRobots
-            << " Charging: " << NumberChargingRobots;
+            << "; Charging: " << NumberChargingRobots;
        file.close();
 
        CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
@@ -290,12 +290,12 @@ void CFootBotForaging::ControlStep() {
        for (auto &map_element : batteries) {
            CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
            file.open(buffer, std::ios::app);
-           file << " battery " << battery.GetRootEntity().GetId() << " :" << battery.GetAvailableCharge();
+           file << "; " << battery.GetRootEntity().GetId() << " :" << battery.GetAvailableCharge();
            file.close();
        }
 
        file.open(buffer, std::ios::app);
-       file << " Found items: " << FoundItems << std::endl;
+       file << "; Found items: " << FoundItems << std::endl;
        file.close();
    }
 }
@@ -385,7 +385,7 @@ void CFootBotForaging::Stuck() {
         m_sStateData.State = SStateData::STATE_EXPLORING;
         m_sFoodData.is_exploring = true;
     } else {
-        m_pcWheels->SetLinearVelocity(0.2f, -0.2f);
+        m_pcWheels->SetLinearVelocity(-0.2f, -1.0f);
     }
 }
 
@@ -645,33 +645,46 @@ void CFootBotForaging::Explore() {
 
    int Probablity = uint_dist100(rng);
 
-   if(reading.AvailableCharge <= 0.99001 && m_sStateData.TimesChecked == 0) {
+   if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 0) {
        m_sStateData.TimesChecked = 1;
        if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.98001 && m_sStateData.TimesChecked == 1){
+   else if(reading.AvailableCharge <= 0.8 && m_sStateData.TimesChecked == 1){
        m_sStateData.TimesChecked = 2;
        if (Probablity >= 70 + m_sStateData.MetRobotsFactor) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.97001 && m_sStateData.TimesChecked == 2){
+   else if(reading.AvailableCharge <= 0.7 && m_sStateData.TimesChecked == 2){
        m_sStateData.TimesChecked = 3;
        if (Probablity >= 60 + m_sStateData.MetRobotsFactor) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.96001 && m_sStateData.TimesChecked == 3){
+   else if(reading.AvailableCharge <= 0.6 && m_sStateData.TimesChecked == 3){
        m_sStateData.TimesChecked = 4;
        if (Probablity >= 50 + m_sStateData.MetRobotsFactor) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.95001){
+   else if(reading.AvailableCharge <= 0.5 && m_sStateData.TimesChecked == 4){
+       m_sStateData.TimesChecked = 5;
+       if (Probablity >= 50 + m_sStateData.MetRobotsFactor) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
+       m_sStateData.TimesChecked = 6;
+       if (Probablity >= 40 + m_sStateData.MetRobotsFactor) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.3){
        bReturnToNest = true;
    }
+
 
 //   if(reading.AvailableCharge <= 0.0){
 //       m_pcLEDs->SetAllColors(CColor::RED);

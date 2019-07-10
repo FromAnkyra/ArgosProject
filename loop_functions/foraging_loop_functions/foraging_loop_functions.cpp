@@ -157,8 +157,9 @@ void CForagingLoopFunctions::PreStep() {
       else {
          /* The foot-bot has no food item */
          /* Check whether the foot-bot is out of the nest */
-         if(sFoodData.position_counter == 99 && sFoodData.stuck){
+         if(sFoodData.position_counter == 299 && sFoodData.stuck){
              sFoodData.stuck = false;
+             sFoodData.position_counter = 0;
          }else if(sFoodData.position_counter == 99 && !sFoodData.stuck){ //} && sFoodData.is_exploring) {
              if (cPos.GetX() <= (sFoodData.previous_position.GetX() + 0.001) &&
                  cPos.GetX() >= (sFoodData.previous_position.GetX() - 0.001) &&
@@ -168,11 +169,9 @@ void CForagingLoopFunctions::PreStep() {
              } else {
                  sFoodData.stuck = false;
              }
-         }
-
-         if(sFoodData.position_counter == 99){
              sFoodData.position_counter = 0;
          }
+
 //         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
 //         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
          if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {
