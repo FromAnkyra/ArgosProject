@@ -28,11 +28,11 @@
 std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
-std::string title = "12 hours long; discharge 10 minutes per 1 collected item; number of food items: 5; ";
+std::string title = "12 hours long; no discharge per collected item; number of food items: 5; ";
 std::string id;
 int id_value;
 
-float battery_consume_per_food_item = 0.06;         // 0.06 is equal to ten minutes
+float battery_consume_per_food_item = 0.00;         // 0.06 is equal to ten minutes
 
 const int SwarmSize = 10;
 
@@ -641,7 +641,7 @@ void CFootBotForaging::Explore() {
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
 
-   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
+//   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
    int Probablity = uint_dist100(rng);
 
@@ -760,19 +760,19 @@ void CFootBotForaging::ReturnToNest() {
    else {
        /* Still outside the nest */
        m_sStateData.TimeSearchingForPlaceInNest = 0;
-       if (m_sFoodData.HasFoodItem) {
-           /* Discharging the robot's battery after picking a food item to simulate this task (equal to 10 minutes of operation -> 0.06)*/
-           CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
-           for (auto &map_element : batteries) {
-               CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
-               std::string id;
-               id = battery.GetRootEntity().GetId();
-               if (GetId() == battery.GetRootEntity().GetId()) {
-                   battery.SetAvailableCharge(battery.GetAvailableCharge() - 0.006);
-               }
-           }
-           FoundItems++;
-       }
+//       if (m_sFoodData.HasFoodItem) {
+//           /* Discharging the robot's battery after picking a food item to simulate this task (equal to 10 minutes of operation -> 0.06)*/
+//           CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+//           for (auto &map_element : batteries) {
+//               CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+//               std::string id;
+//               id = battery.GetRootEntity().GetId();
+//               if (GetId() == battery.GetRootEntity().GetId()) {
+//                   battery.SetAvailableCharge(battery.GetAvailableCharge() - 0.006);
+//               }
+//           }
+//           FoundItems++;
+//       }
    }
    /* Keep going */
    bool bCollision;

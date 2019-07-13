@@ -160,7 +160,8 @@ void CForagingLoopFunctions::PreStep() {
          if(sFoodData.position_counter == 299 && sFoodData.stuck){
              sFoodData.stuck = false;
              sFoodData.position_counter = 0;
-         }else if(sFoodData.position_counter == 99 && !sFoodData.stuck){ //} && sFoodData.is_exploring) {
+         }
+         if(sFoodData.position_counter == 99 && !sFoodData.stuck){ //} && sFoodData.is_exploring) {
              if (cPos.GetX() <= (sFoodData.previous_position.GetX() + 0.001) &&
                  cPos.GetX() >= (sFoodData.previous_position.GetX() - 0.001) &&
                  cPos.GetY() <= (sFoodData.previous_position.GetY() + 0.001) &&
@@ -171,9 +172,12 @@ void CForagingLoopFunctions::PreStep() {
              }
              sFoodData.position_counter = 0;
          }
+         if(sFoodData.position_counter >= 350){
+             sFoodData.position_counter = 0;
+         }
 
-//         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
-//         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
+         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
+         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
          if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {
             /* Check whether the foot-bot is on a food item */
             bool bDone = false;
