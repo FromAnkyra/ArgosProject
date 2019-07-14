@@ -152,7 +152,7 @@ void CForagingLoopFunctions::PreStep() {
           ++m_unCollectedFood;
           /* The floor texture must be updated */
           m_pcFloor->SetChanged();
-          std::cout << "Food items from loop: " << m_unCollectedFood << std::endl;
+//          std::cout << "Food items from loop: " << m_unCollectedFood << std::endl;
       }
       else {
          /* The foot-bot has no food item */
