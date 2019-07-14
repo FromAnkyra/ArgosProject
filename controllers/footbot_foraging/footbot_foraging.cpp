@@ -28,7 +28,7 @@
 std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
-std::string title = "12 hours long; no discharge per collected item; number of food items: 5; ";
+std::string title = "12 hours long; unlimited battery;  no discharge per collected item; number of food items: 5; ";
 std::string id;
 int id_value;
 
