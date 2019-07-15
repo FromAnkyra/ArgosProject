@@ -16,15 +16,10 @@ CForagingQTUserFunctions::CForagingQTUserFunctions() {
 
 void CForagingQTUserFunctions::Draw(CFootBotEntity& c_entity) {
    CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(c_entity.GetControllableEntity().GetController());
-   CFootBotForaging::SFoodData& sFoodData = cController.GetFoodData();
-   if(sFoodData.HasFoodItem) {
-      DrawCylinder(
-         CVector3(0.0f, 0.0f, 0.3f), 
-         CQuaternion(),
-         0.1f,
-         0.05f,
-         CColor::BLACK);
-   }
+//    DrawText(CVector3(0.0, 0.0, 0.3),   // position
+//             c_entity.GetId().c_str()); // text
+    DrawText(CVector3(0.0, 0.0, 0.3),   // position
+             std::to_string(cController.battery_level).c_str()); // text
 }
 
 /****************************************/

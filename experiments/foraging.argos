@@ -123,7 +123,7 @@
         <foot-bot id="fb " rab_range="0.5">
           <controller config="ffc" />
 <!--          <battery model="time" time_factor="-1e-5"/>-->
-          <battery model="time_motion" time_factor="1e-5" pos_factor="1e-3" orient_factor="1e-3" />
+          <battery discharge_model="time_motion" time_factor="1e-4" pos_factor="1e-3" orient_factor="1e-3" />
         </foot-bot>
       </entity>
     </distribute>

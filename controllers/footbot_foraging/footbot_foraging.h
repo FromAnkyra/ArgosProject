@@ -250,6 +250,8 @@ public:
       return m_sFoodData;
    }
 
+   double battery_level;
+
 private:
 
    /*

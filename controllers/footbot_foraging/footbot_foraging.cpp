@@ -28,7 +28,7 @@
 std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
-std::string title = "12 hours long; unlimited battery;  no discharge per collected item; number of food items: 5; ";
+std::string title = "12 hours long; no discharge per collected item; number of food items: 5; ";
 std::string id;
 int id_value;
 
@@ -343,11 +343,14 @@ void CFootBotForaging::Charge() {
         std::string id;
         id = battery.GetRootEntity().GetId();
         if (GetId() == battery.GetRootEntity().GetId()) {
-            battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.00002);
+            battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.001);
         }
     }
 
     CCI_BatterySensor::SReading readingg = battery_sensor->GetReading();
+
+    battery_level = readingg.AvailableCharge;
+
     if(readingg.AvailableCharge >= 0.99999) {
         m_pcLEDs->SetAllColors(CColor::GREEN);
         m_sStateData.State = SStateData::STATE_EXPLORING;
@@ -607,6 +610,7 @@ void CFootBotForaging::Explore() {
                break;
            }
            case NAVIGATING_TO_DOCKING_STATION: {
+               m_sStateData.ReceivedData[tPackets[i].Data[0]][0] = 0;
                m_sStateData.ReceivedData[tPackets[i].Data[0]][1]++;       //increase number of times of meeting a robot returing to charging area
                break;
            }
@@ -641,8 +645,9 @@ void CFootBotForaging::Explore() {
     }
 
    CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
+    battery_level = reading.AvailableCharge;
 
-//   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
+   std::cout << GetId() << " Battery level: " << reading.AvailableCharge << std::endl;
 
    int Probablity = uint_dist100(rng);
 
