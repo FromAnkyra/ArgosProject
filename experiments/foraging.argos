@@ -14,7 +14,7 @@
   <framework>
     <system threads="0" />
     <!-- How many seconds should the experiment last -->
-    <experiment length="43200"
+    <experiment length="2000"
                 ticks_per_second="10"
                 random_seed="123" />
   </framework>

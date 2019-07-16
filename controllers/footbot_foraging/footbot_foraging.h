@@ -154,6 +154,10 @@ public:
       Real TimesChecked;
       /* Array for data from received messages*/
       Real ReceivedData[10][2];
+      /* */
+      Real DecisionVolatage;
+      /* */
+      Real DecisionTime;
 
 
       /* Used as a range for uniform number generation */
