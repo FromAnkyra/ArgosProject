@@ -29,6 +29,9 @@ std::ofstream file;
 int FoundItems = 0;
 char buffer [80];
 char buffer2 [80];
+char filename [80];
+std::string data_file;
+std::string battery_file;
 std::string title = "12 hours long; no discharge per collected item; number of food items: 5; ";
 std::string id;
 int id_value;
@@ -150,8 +153,7 @@ void CFootBotForaging::SStateData::Init(TConfigurationNode& t_node) {
       GetNodeAttribute(t_node, "met_robots_factor", MetRobotsFactor);
       GetNodeAttribute(t_node, "met_continuing_robots", MetContinuingRobots);
       GetNodeAttribute(t_node, "met_returning_robots", MetReturningRobots);
-
-
+      GetNodeAttribute(t_node, "file_name", filename);
    }
    catch(CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing controller state parameters.", ex);
@@ -215,12 +217,14 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
        time_t t = time(0);   // get time now
        struct tm * now = localtime( & t );
 
-       strftime (buffer,80,"experiments_data/%Y-%m-%d/%R.txt",now);
-       strftime (buffer2,80,"experiments_data/%Y-%m-%d/%R_battery.txt",now);
+       strftime (buffer,80,"experiments_data/%Y-%m-%d/",now);
+       strftime (buffer2,80,"experiments_data/%Y-%m-%d/battery_",now);
+       data_file = buffer + std::string(filename) + ".txt";
+       battery_file = buffer2 + std::string(filename) + ".txt";
 
 
        if(GetId() == "fb 0") {
-           file.open (buffer, std::ios::app);
+           file.open (data_file, std::ios::app);
            file << "Title: " << title << "number of robots: " << SwarmSize << std::endl;
            file << "Time: " <<  "Exploring: " << " Charging: ";
            for(int i = 0; i < SwarmSize; i++){
@@ -229,7 +233,7 @@ void CFootBotForaging::Init(TConfigurationNode& t_node) {
            file << " Found items: " << std::endl;
            file.close();
 
-           file.open(buffer2, std::ios::app);
+           file.open(battery_file, std::ios::app);
            file << "Time: " << "Decision time: " << "Time difference: " << "ID: " << "Decision charge: " << "Docking charge: " << "Charge difference: " << std::endl;
            file.close();
        }
@@ -286,7 +290,7 @@ void CFootBotForaging::ControlStep() {
 
    /* Saving data to file */
    if(GetId() == "fb 0") {
-       file.open(buffer, std::ios::app);
+       file.open(data_file, std::ios::app);
        file << CSimulator::GetInstance().GetSpace().GetSimulationClock() << " " << NumberExploringRobots << " " << NumberChargingRobots;
        file.close();
 
@@ -294,12 +298,12 @@ void CFootBotForaging::ControlStep() {
 
        for (auto &map_element : batteries) {
            CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
-           file.open(buffer, std::ios::app);
+           file.open(data_file, std::ios::app);
            file << " " << battery.GetAvailableCharge();
            file.close();
        }
 
-       file.open(buffer, std::ios::app);
+       file.open(data_file, std::ios::app);
        file << " " << FoundItems << std::endl;
        file.close();
    }
@@ -322,7 +326,7 @@ void CFootBotForaging::Charge() {
         id = GetId();
         extractIntegerWords(id);
 
-        file.open(buffer2, std::ios::app);
+        file.open(battery_file, std::ios::app);
         file << CurrentTime << " " << m_sStateData.DecisionTime << " " << CurrentTime - m_sStateData.DecisionTime << " " << id_value << " " <<
         m_sStateData.DecisionVolatage << " " << reading.AvailableCharge << " " << m_sStateData.DecisionVolatage - reading.AvailableCharge << std::endl;
         file.close();
@@ -357,7 +361,7 @@ void CFootBotForaging::Charge() {
         std::string id;
         id = battery.GetRootEntity().GetId();
         if (GetId() == battery.GetRootEntity().GetId()) {
-            battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.001);
+            battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.000345);
         }
     }
 

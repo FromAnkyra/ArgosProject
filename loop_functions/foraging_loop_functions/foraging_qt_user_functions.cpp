@@ -8,14 +8,14 @@ using namespace argos;
 /****************************************/
 
 CForagingQTUserFunctions::CForagingQTUserFunctions() {
-   RegisterUserFunction<CForagingQTUserFunctions,CFootBotEntity>(&CForagingQTUserFunctions::Draw);
+    RegisterUserFunction<CForagingQTUserFunctions,CFootBotEntity>(&CForagingQTUserFunctions::Draw);
 }
 
 /****************************************/
 /****************************************/
 
 void CForagingQTUserFunctions::Draw(CFootBotEntity& c_entity) {
-   CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(c_entity.GetControllableEntity().GetController());
+    CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(c_entity.GetControllableEntity().GetController());
 //    DrawText(CVector3(0.0, 0.0, 0.3),   // position
 //             c_entity.GetId().c_str()); // text
     DrawText(CVector3(0.0, 0.0, 0.3),   // position

@@ -14,9 +14,9 @@
   <framework>
     <system threads="0" />
     <!-- How many seconds should the experiment last -->
-    <experiment length="2000"
+    <experiment length='2000'
                 ticks_per_second="10"
-                random_seed="123" />
+                random_seed='1' />
   </framework>
 
   <!-- *************** -->
@@ -49,6 +49,7 @@
         <state met_continuing_robots="0"
                met_returning_robots="0"
                met_robots_factor="1"
+               file_name='data1'
                minimum_search_for_place_in_nest_time="50">
           <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.01" />
         </state>
@@ -124,6 +125,7 @@
           <controller config="ffc" />
 <!--          <battery model="time" time_factor="-1e-5"/>-->
           <battery discharge_model="time_motion" time_factor="1e-4" pos_factor="1e-3" orient_factor="1e-3" />
+<!--          <battery model="time_motion" time_factor="1e-4" pos_factor="1e-3" orient_factor="1e-3" />-->
         </foot-bot>
       </entity>
     </distribute>
