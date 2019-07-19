@@ -48,6 +48,8 @@
                        max_speed="10" />
         <state met_continuing_robots="0"
                met_returning_robots="0"
+               met_new_continuing_robots="0"
+               met_new_returning_robots="0"
                met_robots_factor="1"
                file_name='data1'
                minimum_search_for_place_in_nest_time="50">
@@ -121,11 +123,10 @@
       <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="10" max_trials="100">
-        <foot-bot id="fb " rab_range="0.5">
+        <foot-bot id="fb " rab_range="0.3">
           <controller config="ffc" />
 <!--          <battery model="time" time_factor="-1e-5"/>-->
           <battery discharge_model="time_motion" time_factor="1e-4" pos_factor="1e-3" orient_factor="1e-3" />
-<!--          <battery model="time_motion" time_factor="1e-4" pos_factor="1e-3" orient_factor="1e-3" />-->
         </foot-bot>
       </entity>
     </distribute>

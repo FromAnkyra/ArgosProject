@@ -1,6 +1,6 @@
 #!/bin/sh
 
-runs=1 # First command line argument is the number of runs
+runs=10 # First command line argument is the number of runs
 time=3000
 
 config="experiments/foraging.argos" # Path to your ARGoS configuration file

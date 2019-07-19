@@ -172,7 +172,7 @@ void CForagingLoopFunctions::PreStep() {
              }
              sFoodData.position_counter = 0;
          }
-         if(sFoodData.position_counter >= 350){
+         if(sFoodData.position_counter >= 310){
              sFoodData.position_counter = 0;
          }
 

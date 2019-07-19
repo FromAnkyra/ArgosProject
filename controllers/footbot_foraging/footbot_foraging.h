@@ -150,10 +150,14 @@ public:
       Real MetContinuingRobots;
       /* */
       Real MetReturningRobots;
+      /* */
+      Real MetNewContinuingRobots;
+      /* */
+      Real MetNewReturningRobots;
       /* How many times returning to the charging area was considered */
       Real TimesChecked;
       /* Array for data from received messages*/
-      Real ReceivedData[10][2];
+      Real ReceivedData[10][4];
       /* */
       Real DecisionVolatage;
       /* */
