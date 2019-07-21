@@ -38,7 +38,7 @@ int id_value;
 
 float battery_consume_per_food_item = 0.00;         // 0.06 is equal to ten minutes
 
-const int SwarmSize = 10;
+const int SwarmSize = 50;
 
 int NumberExploringRobots = SwarmSize;
 int NumberChargingRobots;
@@ -712,7 +712,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 1;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -720,7 +720,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 2;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -728,7 +728,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 3;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -736,7 +736,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 4;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -744,7 +744,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 5;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -752,18 +752,40 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 6;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (20 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.3){
+//   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
+//       m_sStateData.TimesChecked = 6;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
+//       m_sStateData.TimesChecked = 6;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+   if(reading.AvailableCharge <= 0.3){
        bReturnToNest = true;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
    }
 
-
-
+//   if(reading.AvailableCharge <= 0.0){
+//        m_pcLEDs->SetAllColors(CColor::RED);
+//        //m_sStateData.State = SStateData::STATE_CHARGING;
+//        m_sFoodData.is_exploring = false;
+//        NumberExploringRobots--;
+//        m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+//        //std::cout << GetId() << " Battery empty " <<  std::endl;
+//    }
 
    /* So, do we return to the nest now? */
    if(bReturnToNest) {
@@ -808,14 +830,6 @@ void CFootBotForaging::Explore() {
       }
    }
 
-//    if(reading.AvailableCharge <= 0.0){
-//        m_pcLEDs->SetAllColors(CColor::RED);
-//        m_sStateData.State = SStateData::STATE_CHARGING;
-//        m_sFoodData.is_exploring = false;
-//        NumberExploringRobots--;
-//        m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
-//        std::cout << GetId() << " Battery empty " <<  std::endl;
-//    }
 }
 
 /****************************************/
@@ -824,25 +838,43 @@ void CFootBotForaging::Explore() {
 void CFootBotForaging::ReturnToNest() {
    /* As soon as you get to the nest, switch to 'resting' */
    UpdateState();
-   /* Are we in the nest? */
-   if(m_sStateData.InNest) {
-       /* Have we looked for a place long enough? */
-       if (m_sStateData.TimeSearchingForPlaceInNest > m_sStateData.MinimumSearchForPlaceInNestTime) {
-           /* Yes, stop the wheels... */
-           m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
-           /* ... and switch to state 'resting' */
-           m_pcLEDs->SetAllColors(CColor::RED);
-           m_sStateData.State = SStateData::STATE_CHARGING;
-           m_sStateData.TimeSearchingForPlaceInNest = 0;
-           return;
-       } else {
-           /* No, keep looking */
-           ++m_sStateData.TimeSearchingForPlaceInNest;
+
+   CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
+   if(reading.AvailableCharge <= 0.00000000) {
+       m_pcLEDs->SetAllColors(CColor::RED);
+       //m_sStateData.State = SStateData::STATE_CHARGING;
+       m_sFoodData.is_exploring = false;
+       if(!m_sStateData.Saved) {
+           NumberExploringRobots--;
+           m_sStateData.Saved = true;
+           std::cout << GetId() << " Battery empty. Operating robots and returning" << NumberExploringRobots << " " << NumberChargingRobots <<  std::endl;
        }
-   }
-   else {
-       /* Still outside the nest */
-       m_sStateData.TimeSearchingForPlaceInNest = 0;
+       m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+//       std::cout << GetId() << " Battery empty. Operating robots and returning" << NumberExploringRobots << " " << NumberChargingRobots <<  std::endl;
+       m_eChargingResult = DEAD;
+       id = GetId();
+       extractIntegerWords(id);
+       m_pcRABA->SetData(0, id_value);
+       m_pcRABA->SetData(1, m_eChargingResult);
+   } else {
+       /* Are we in the nest? */
+       if (m_sStateData.InNest) {
+           /* Have we looked for a place long enough? */
+           if (m_sStateData.TimeSearchingForPlaceInNest > m_sStateData.MinimumSearchForPlaceInNestTime) {
+               /* Yes, stop the wheels... */
+               m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+               /* ... and switch to state 'resting' */
+               m_pcLEDs->SetAllColors(CColor::RED);
+               m_sStateData.State = SStateData::STATE_CHARGING;
+               m_sStateData.TimeSearchingForPlaceInNest = 0;
+               return;
+           } else {
+               /* No, keep looking */
+               ++m_sStateData.TimeSearchingForPlaceInNest;
+           }
+       } else {
+           /* Still outside the nest */
+           m_sStateData.TimeSearchingForPlaceInNest = 0;
 //       if (m_sFoodData.HasFoodItem) {
 //           /* Discharging the robot's battery after picking a food item to simulate this task (equal to 10 minutes of operation -> 0.06)*/
 //           CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
@@ -856,12 +888,13 @@ void CFootBotForaging::ReturnToNest() {
 //           }
 //           FoundItems++;
 //       }
+       }
+       /* Keep going */
+       bool bCollision;
+       SetWheelSpeedsFromVector(
+               m_sWheelTurningParams.MaxSpeed * DiffusionVector(bCollision) +
+               m_sWheelTurningParams.MaxSpeed * CalculateVectorToLight());
    }
-   /* Keep going */
-   bool bCollision;
-   SetWheelSpeedsFromVector(
-      m_sWheelTurningParams.MaxSpeed * DiffusionVector(bCollision) +
-      m_sWheelTurningParams.MaxSpeed * CalculateVectorToLight());
 }
 
 /****************************************/

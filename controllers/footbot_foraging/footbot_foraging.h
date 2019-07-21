@@ -157,7 +157,7 @@ public:
       /* How many times returning to the charging area was considered */
       Real TimesChecked;
       /* Array for data from received messages*/
-      Real ReceivedData[10][4];
+      Real ReceivedData[50][4];
       /* */
       Real DecisionVolatage;
       /* */
@@ -357,7 +357,8 @@ private:
      * the robot */
     enum EChargingResult {
         CONTINUING_TASK = 0,  // the robot continues task
-        NAVIGATING_TO_DOCKING_STATION  // the robot goes to the charging area
+        NAVIGATING_TO_DOCKING_STATION,  // the robot goes to the charging area
+        DEAD
     } m_eChargingResult;
 
    /* The controller state information */

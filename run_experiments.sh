@@ -13,7 +13,7 @@ do
 	
 	sed -i "s/random_seed='[0-9]'*/random_seed='$random_seed'/" $temp # Find and replace random seed value
 	sed -i "s/<experiment length='2000'*/<experiment length='$time'/" $temp # Find and replace random seed value
-	sed -i "s/rab_range='0.5'>*/rab_range='2.0'>/" $temp
+	sed -i "s/rab_range='0.5'>*/rab_range='0.5'>/" $temp
 	sed -i "s/file_name='data1'*/file_name='data$random_seed'/" $temp # Find and replace random seed value
 	sed -i '/<visualization>/,/<\/visualization>/d' $temp # Delete the visualization block
 

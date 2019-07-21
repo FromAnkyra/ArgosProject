@@ -122,7 +122,7 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="10" max_trials="100">
+      <entity quantity="50" max_trials="100">
         <foot-bot id="fb " rab_range='0.5'>
           <controller config="ffc" />
 <!--          <battery model="time" time_factor="-1e-5"/>-->
