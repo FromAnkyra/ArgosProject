@@ -13,10 +13,10 @@ std::string id;
 int mojojoj = 0;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
-//   m_cForagingArenaSideX(-0.9f, 1.7f),                    // ORIGINAL - NOT SCALED
-//   m_cForagingArenaSideY(-1.7f, 1.7f),
-   m_cForagingArenaSideX(-1.8f, 3.4f),
-   m_cForagingArenaSideY(-3.4f, 3.4f),
+   m_cForagingArenaSideX(-0.9f, 1.7f),                    // ORIGINAL - NOT SCALED
+   m_cForagingArenaSideY(-1.7f, 1.7f),
+//   m_cForagingArenaSideX(-1.8f, 3.4f),
+//   m_cForagingArenaSideY(-3.4f, 3.4f),
    m_pcFloor(NULL),
    m_pcRNG(NULL),
    m_unCollectedFood(0),
@@ -94,7 +94,7 @@ void CForagingLoopFunctions::Destroy() {
 /****************************************/
 
 CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane) {
-   if(c_position_on_plane.GetX() < -2.0f) {                                                     ////ORGINAL - NOT SCALED - WAS -1.0f
+   if(c_position_on_plane.GetX() < -1.0f) {                                                     ////ORGINAL - NOT SCALED - WAS -1.0f
       return CColor::GRAY50;
    }
    for(UInt32 i = 0; i < m_cFoodPos.size(); ++i) {
@@ -181,7 +181,7 @@ void CForagingLoopFunctions::PreStep() {
 //         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
 //         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
 
-         if(cPos.GetX() > -2.0f && sFoodData.is_exploring) {                        ////ORGINAL - NOT SCALED - WAS -1.0f
+         if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {                        ////ORGINAL - NOT SCALED - WAS -1.0f
             /* Check whether the foot-bot is on a food item */
             bool bDone = false;
 

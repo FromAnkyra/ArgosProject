@@ -153,15 +153,22 @@ public:
       /* */
       Real MetNewContinuingRobots;
       /* */
+      double MetRobotsBattery;
+      /* */
+      double MetNewRobotsBattery;
+      /* */
+      double BatteryReading;
+      /* */
       Real MetNewReturningRobots;
       /* How many times returning to the charging area was considered */
       Real TimesChecked;
       /* Array for data from received messages*/
-      Real ReceivedData[40][4];
+      Real ReceivedData[10][6];
       /* */
       Real DecisionVolatage;
       /* */
       Real DecisionTime;
+
 
 
       /* Used as a range for uniform number generation */
