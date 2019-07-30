@@ -56,6 +56,9 @@ public:
       bool HasFoodItem;      // true when the robot is carrying a food item
       bool is_exploring;
       bool stuck;
+      bool wants_to_charge;
+      bool can_charge;
+      bool done_charging;
       CVector2 previous_position;
       size_t FoodItemIdx;    // the index of the current food item in the array of available food items
       size_t TotalFoodItems; // the total number of food items carried by this robot during the experiment

@@ -4,13 +4,18 @@
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 #include <controllers/footbot_foraging/footbot_foraging.h>
 #include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+#include <queue>
+
 
 
 /****************************************/
 /****************************************/
 
 std::string id;
-int mojojoj = 0;
+std::queue < int > awaiting_charging_queue;
+const int NUmberOfChargingStations = 5;
+int charging_list [NUmberOfChargingStations];
+int numeric_id = 0;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
    m_cForagingArenaSideX(-0.9f, 1.7f),                    // ORIGINAL - NOT SCALED
@@ -56,6 +61,10 @@ void CForagingLoopFunctions::Init(TConfigurationNode& t_node) {
       GetNodeAttribute(tForaging, "energy_per_item", m_unEnergyPerFoodItem);
       /* Get energy loss per walking robot */
       GetNodeAttribute(tForaging, "energy_per_walking_robot", m_unEnergyPerWalkingRobot);
+
+       for(int j = 0; j < NUmberOfChargingStations; j++){
+           charging_list[j] = 1000;
+       }
 
    }
    catch(CARGoSException& ex) {
@@ -109,7 +118,7 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane
 /****************************************/
 
 void CForagingLoopFunctions::PreStep() {
-    mojojoj = 0;
+    numeric_id = 0;
     /* Logic to pick and drop food items */
     /*
      * * If a robot is in the nest, drop the food item
@@ -178,7 +187,7 @@ void CForagingLoopFunctions::PreStep() {
              sFoodData.position_counter = 0;
          }
 
-//         std::cout << "ID: " << mojojoj << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
+//         std::cout << "ID: " << numeric_id << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
 //         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
 
          if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {                        ////ORGINAL - NOT SCALED - WAS -1.0f
@@ -199,10 +208,31 @@ void CForagingLoopFunctions::PreStep() {
                }
             }
          }
+         if(cPos.GetX() < -1.0f && sFoodData.wants_to_charge){
+             awaiting_charging_queue.push(numeric_id);
+             sFoodData.wants_to_charge = false;
+             std::cout << "ID " << numeric_id << " enters" << std::endl;
+         }
+         for (int j = 0; j < NUmberOfChargingStations; j++) {
+             if (charging_list[j] == numeric_id) {
+                 sFoodData.can_charge = true;
+             }
+         }
+         if(sFoodData.done_charging){
+             for (int j = 0; j < NUmberOfChargingStations; j++){
+                 if(charging_list[j] == numeric_id){
+                     charging_list[j] = 1000;
+                 }
+             }
+             sFoodData.done_charging = false;
+             sFoodData.can_charge = false;
+         }
+
+
       }
       sFoodData.position_counter++;
 
-      mojojoj++;
+       numeric_id++;
    }
    /* Update energy expediture due to walking robots */
    m_nEnergy -= unWalkingFBs * m_unEnergyPerWalkingRobot;
@@ -212,6 +242,20 @@ void CForagingLoopFunctions::PreStep() {
              << unRestingFBs << "\t"
              << m_unCollectedFood << "\t"
              << m_nEnergy << std::endl;
+
+   if(!awaiting_charging_queue.empty()) {
+       for (int j = 0; j < NUmberOfChargingStations; j++) {
+           if (charging_list[j] == 1000 && !awaiting_charging_queue.empty()) {
+               charging_list[j] = awaiting_charging_queue.front();
+               awaiting_charging_queue.pop();
+           }
+       }
+   }
+   std::cout << "Lista: ";
+   for (int j = 0; j < NUmberOfChargingStations; j++) {
+       std::cout << charging_list[j] << " ";
+   }
+   std::cout << std::endl;
 
 
 }

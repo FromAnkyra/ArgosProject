@@ -380,11 +380,12 @@ void CFootBotForaging::Charge() {
         CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
         std::string id;
         id = battery.GetRootEntity().GetId();
-        if (GetId() == battery.GetRootEntity().GetId()) {
+        if (GetId() == battery.GetRootEntity().GetId() && m_sFoodData.can_charge) {
             battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.000345);
             if(battery.GetAvailableCharge() > 1.0){
                 battery.SetAvailableCharge(1.0);
             }
+            m_pcLEDs->SetAllColors(CColor::YELLOW);
         }
     }
 
@@ -404,6 +405,7 @@ void CFootBotForaging::Charge() {
             m_sStateData.ReceivedData[j][3] = 0;
             m_sStateData.ReceivedData[j][5] = 1000000;
         }
+        m_sFoodData.done_charging = true;
         m_eChargingResult = CONTINUING_TASK;
         m_pcRABA->SetData(1, m_eChargingResult);
         NumberChargingRobots--;
@@ -467,6 +469,8 @@ void CFootBotForaging::Reset() {
    extractIntegerWords(id);
    m_pcRABA->SetData(0, id_value);
    m_pcRABA->SetData(1, m_eChargingResult);
+
+   m_sFoodData.can_charge = false;
 
     for(int j = 0; j < SwarmSize; j++) {
         m_sStateData.ReceivedData[j][4] = 1000000;
@@ -650,6 +654,8 @@ void CFootBotForaging::Explore() {
    m_pcRABA->SetData(4, X3);
    m_pcRABA->SetData(5, X4);
 
+   m_sFoodData.can_charge = false;
+
 
 
    bool bReturnToNest(false);
@@ -792,52 +798,52 @@ void CFootBotForaging::Explore() {
 //    std::cout << GetId() << " MetRB: " << m_sStateData.MetNewRobotsBattery  << std::endl;
 
     if(m_sStateData.MetNewRobotsBattery >= 9500){
-        m_sStateData.MetRobotsFactor = -25;
+        m_sStateData.MetRobotsFactor = 0;
     }
     else if(m_sStateData.MetNewRobotsBattery >= 9000){
-        m_sStateData.MetRobotsFactor = -20;
+        m_sStateData.MetRobotsFactor = 0;
     }
     else if(m_sStateData.MetNewRobotsBattery >= 8500){
-        m_sStateData.MetRobotsFactor = -15;
+        m_sStateData.MetRobotsFactor = 0;
     }
     else if(m_sStateData.MetNewRobotsBattery >= 8000){
-        m_sStateData.MetRobotsFactor = -10;
+        m_sStateData.MetRobotsFactor = 0;
     }
     else if(m_sStateData.MetNewRobotsBattery >= 7500){
-        m_sStateData.MetRobotsFactor = -5;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 7000){
-        m_sStateData.MetRobotsFactor = 0;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 6500){
-        m_sStateData.MetRobotsFactor = 0;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 6000){
-        m_sStateData.MetRobotsFactor = 5;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 5500){
         m_sStateData.MetRobotsFactor = 10;
     }
-    else if(m_sStateData.MetNewRobotsBattery >= 5000){
+    else if(m_sStateData.MetNewRobotsBattery >= 7000){
         m_sStateData.MetRobotsFactor = 15;
     }
-    else if(m_sStateData.MetNewRobotsBattery >= 4500){
+    else if(m_sStateData.MetNewRobotsBattery >= 6500){
         m_sStateData.MetRobotsFactor = 20;
     }
-    else if(m_sStateData.MetNewRobotsBattery >= 4000){
+    else if(m_sStateData.MetNewRobotsBattery >= 6000){
         m_sStateData.MetRobotsFactor = 25;
     }
-    else if(m_sStateData.MetNewRobotsBattery >= 3500){
+    else if(m_sStateData.MetNewRobotsBattery >= 5500){
         m_sStateData.MetRobotsFactor = 30;
     }
-    else if(m_sStateData.MetNewRobotsBattery >= 3000){
+    else if(m_sStateData.MetNewRobotsBattery >= 5000){
         m_sStateData.MetRobotsFactor = 35;
     }
-    else if(m_sStateData.MetNewRobotsBattery >= 2500){
+    else if(m_sStateData.MetNewRobotsBattery >= 4500){
         m_sStateData.MetRobotsFactor = 40;
     }
-    else {
+    else if(m_sStateData.MetNewRobotsBattery >= 4000){
         m_sStateData.MetRobotsFactor = 45;
+    }
+    else if(m_sStateData.MetNewRobotsBattery >= 3500){
+        m_sStateData.MetRobotsFactor = 50;
+    }
+    else if(m_sStateData.MetNewRobotsBattery >= 3000){
+        m_sStateData.MetRobotsFactor = 55;
+    }
+    else if(m_sStateData.MetNewRobotsBattery >= 2500){
+        m_sStateData.MetRobotsFactor = 60;
+    }
+    else {
+        m_sStateData.MetRobotsFactor = 65;
     }
 
 //    std::cout << GetId() << " MRB:" << m_sStateData.MetNewRobotsBattery << " MFac: " << m_sStateData.MetRobotsFactor << std::endl;
@@ -878,21 +884,21 @@ void CFootBotForaging::Explore() {
 //
    int Probablity = uint_dist100(rng);
 
-   if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 0) {
+   if(reading.AvailableCharge <= 0.95 && m_sStateData.TimesChecked == 0) {
        m_sStateData.TimesChecked = 1;
 //       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
-   else if(reading.AvailableCharge <= 0.8 && m_sStateData.TimesChecked == 1){
+   else if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 1){
        m_sStateData.TimesChecked = 2;
 //       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -901,7 +907,7 @@ void CFootBotForaging::Explore() {
 //       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -909,7 +915,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 4;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -917,7 +923,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 5;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -925,7 +931,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 6;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -933,7 +939,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 7;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
@@ -941,11 +947,11 @@ void CFootBotForaging::Explore() {
        m_sStateData.TimesChecked = 8;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (20 + m_sStateData.MetRobotsFactor)) {
+       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
            bReturnToNest = true;
        }
    }
-   if(reading.AvailableCharge <= 0.1){
+   if(reading.AvailableCharge <= 0.95){
        bReturnToNest = true;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
@@ -968,6 +974,7 @@ void CFootBotForaging::Explore() {
        m_sStateData.State = SStateData::STATE_RETURN_TO_NEST;
        m_eChargingResult = NAVIGATING_TO_DOCKING_STATION;
        m_sFoodData.is_exploring = false;
+       m_sFoodData.wants_to_charge = true;
        id = GetId();
        extractIntegerWords(id);
        m_pcRABA->SetData(0, id_value);
@@ -1052,6 +1059,9 @@ void CFootBotForaging::ReturnToNest() {
        m_pcRABA->SetData(0, id_value);
        m_pcRABA->SetData(1, m_eChargingResult);
        m_pcRABA->SetData(2, 100);
+       m_sFoodData.done_charging = true;
+       m_sFoodData.can_charge = false;
+       m_sFoodData.wants_to_charge = false;
    } else {
        /* Are we in the nest? */
        if (m_sStateData.InNest) {
