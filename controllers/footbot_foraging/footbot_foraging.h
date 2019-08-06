@@ -142,6 +142,7 @@ public:
       /* True when the robot is in the nest */
       bool InNest;
       bool Saved;
+      bool DeadSaved;
 
       /* Value of the robot's battery at the beginning of charging */
       Real ChargingInitialValue;

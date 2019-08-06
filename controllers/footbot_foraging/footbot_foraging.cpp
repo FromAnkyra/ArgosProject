@@ -42,6 +42,7 @@ const int SwarmSize = 10;
 
 int NumberExploringRobots = SwarmSize;
 int NumberChargingRobots;
+int NumberWaitingRobots;
 
 typedef std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
 time_t seed_val = time(0);
@@ -298,7 +299,8 @@ void CFootBotForaging::ControlStep() {
    /* Saving data to file */
    if(GetId() == "fb 0") {
        file.open(data_file, std::ios::app);
-       file << CSimulator::GetInstance().GetSpace().GetSimulationClock() << " " << NumberExploringRobots << " " << NumberChargingRobots;
+       file << CSimulator::GetInstance().GetSpace().GetSimulationClock() << " " << NumberExploringRobots
+       << " " << NumberChargingRobots << " " << NumberWaitingRobots;
        file.close();
 
        CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
@@ -313,6 +315,7 @@ void CFootBotForaging::ControlStep() {
        file.open(data_file, std::ios::app);
        file << " " << FoundItems << std::endl;
        file.close();
+//       std::cout <<  NumberExploringRobots << " " << NumberChargingRobots << " " << NumberWaitingRobots << std::endl;
    }
 }
 
@@ -322,35 +325,64 @@ void CFootBotForaging::ControlStep() {
 void CFootBotForaging::Charge() {
     CCI_BatterySensor::SReading reading = battery_sensor->GetReading();
     m_sStateData.BatteryReading = (1 * reading.AvailableCharge);
-    int X1 = Real(10 * m_sStateData.BatteryReading);
-    int X2 = Real((100 * m_sStateData.BatteryReading)-(X1*10));
-    int X3 = Real((1000 * m_sStateData.BatteryReading)-(X1*100)-(X2*10));
-    int X4 = Real((10000 * m_sStateData.BatteryReading)-(X1*1000)-(X2*100)-(X3*10));
-//   std::cout << GetId() << " Own_battery: " << m_sStateData.BatteryReading << " : " << X1 << " : " << X2 << " : " << X3 << " : " << X4 << std::endl;
-    m_pcRABA->SetData(2, X1);
-    m_pcRABA->SetData(3, X2);
-    m_pcRABA->SetData(4, X3);
-    m_pcRABA->SetData(5, X4);
 
-    Real CurrentTime = CSimulator::GetInstance().GetSpace().GetSimulationClock();
-
-    if(!m_sStateData.Saved) {
-//        m_sStateData.ChargingInitialTime = CurrentTime;                                   // variable used in the "instant" charging mode
-//        m_sStateData.ChargingInitialValue = 100000 * (1 - reading.AvailableCharge);       // variable used in the "instant" charging mode
-        m_sStateData.Saved = true;
-        NumberChargingRobots++;
-        NumberExploringRobots--;
-
+    if(reading.AvailableCharge <= 0.00000000) {
+        m_pcLEDs->SetAllColors(CColor::RED);
+        //m_sStateData.State = SStateData::STATE_CHARGING;
+        m_sFoodData.is_exploring = false;
+        if(!m_sStateData.Saved) {
+            NumberWaitingRobots--;
+            m_sStateData.Saved = true;
+//           std::cout << GetId() << " Battery empty. Operating robots and returning" << NumberExploringRobots << " " << NumberChargingRobots <<  std::endl;
+        }
+        m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
+//       std::cout << GetId() << " Battery empty. Operating robots and returning" << NumberExploringRobots << " " << NumberChargingRobots <<  std::endl;
+        m_eChargingResult = DEAD;
         id = GetId();
         extractIntegerWords(id);
-
-        file.open(battery_file, std::ios::app);
-        file << CurrentTime << " " << m_sStateData.DecisionTime << " " << CurrentTime - m_sStateData.DecisionTime << " " << id_value << " " <<
-        m_sStateData.DecisionVolatage << " " << reading.AvailableCharge << " " << m_sStateData.DecisionVolatage - reading.AvailableCharge << " " <<
-        m_sStateData.MetContinuingRobots << " " << m_sStateData.MetReturningRobots << " " <<
-        m_sStateData.MetNewContinuingRobots << " " << m_sStateData.MetNewReturningRobots << std::endl;
-        file.close();
+        m_pcRABA->SetData(0, id_value);
+        m_pcRABA->SetData(1, m_eChargingResult);
+        m_pcRABA->SetData(2, 100);
+        m_sFoodData.done_charging = true;
+        m_sFoodData.can_charge = false;
+        m_sFoodData.wants_to_charge = false;
     }
+    else {
+        int X1 = Real(10 * m_sStateData.BatteryReading);
+        int X2 = Real((100 * m_sStateData.BatteryReading) - (X1 * 10));
+        int X3 = Real((1000 * m_sStateData.BatteryReading) - (X1 * 100) - (X2 * 10));
+        int X4 = Real((10000 * m_sStateData.BatteryReading) - (X1 * 1000) - (X2 * 100) - (X3 * 10));
+//   std::cout << GetId() << " Own_battery: " << m_sStateData.BatteryReading << " : " << X1 << " : " << X2 << " : " << X3 << " : " << X4 << std::endl;
+        m_pcRABA->SetData(2, X1);
+        m_pcRABA->SetData(3, X2);
+        m_pcRABA->SetData(4, X3);
+        m_pcRABA->SetData(5, X4);
+
+        Real CurrentTime = CSimulator::GetInstance().GetSpace().GetSimulationClock();
+
+        if (!m_sStateData.Saved && m_sFoodData.can_charge) {
+//        m_sStateData.ChargingInitialTime = CurrentTime;                                   // variable used in the "instant" charging mode
+//        m_sStateData.ChargingInitialValue = 100000 * (1 - reading.AvailableCharge);       // variable used in the "instant" charging mode
+            m_sStateData.Saved = true;
+            NumberChargingRobots++;
+            if(m_sStateData.DeadSaved) {
+                NumberWaitingRobots--;
+            }
+            else {
+                NumberExploringRobots--;
+            }
+            id = GetId();
+            extractIntegerWords(id);
+
+            file.open(battery_file, std::ios::app);
+            file << CurrentTime << " " << m_sStateData.DecisionTime << " " << CurrentTime - m_sStateData.DecisionTime
+                 << " " << id_value << " " <<
+                 m_sStateData.DecisionVolatage << " " << reading.AvailableCharge << " "
+                 << m_sStateData.DecisionVolatage - reading.AvailableCharge << " " <<
+                 m_sStateData.MetContinuingRobots << " " << m_sStateData.MetReturningRobots << " " <<
+                 m_sStateData.MetNewContinuingRobots << " " << m_sStateData.MetNewReturningRobots << std::endl;
+            file.close();
+        }
 
 //    /* Charging the robot's battery after specified time nd returning to the exploring mode afterwards */
 //    CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
@@ -374,43 +406,44 @@ void CFootBotForaging::Charge() {
 //    }
 
 /* Charging the robot's battery gradually and returning to the exploring mode after specified time */
-    CSpace::TMapPerType& batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
+        CSpace::TMapPerType &batteries = CSimulator::GetInstance().GetSpace().GetEntitiesByType("battery");
 
-    for (auto &map_element : batteries) {
-        CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
-        std::string id;
-        id = battery.GetRootEntity().GetId();
-        if (GetId() == battery.GetRootEntity().GetId() && m_sFoodData.can_charge) {
-            battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.000345);
-            if(battery.GetAvailableCharge() > 1.0){
-                battery.SetAvailableCharge(1.0);
+        for (auto &map_element : batteries) {
+            CBatteryEquippedEntity &battery = *any_cast<CBatteryEquippedEntity *>(map_element.second);
+            std::string id;
+            id = battery.GetRootEntity().GetId();
+            if (GetId() == battery.GetRootEntity().GetId() && m_sFoodData.can_charge) {
+                battery.SetAvailableCharge(battery.GetAvailableCharge() + 0.000345);
+                if (battery.GetAvailableCharge() > 1.0) {
+                    battery.SetAvailableCharge(1.0);
+                }
+                m_pcLEDs->SetAllColors(CColor::YELLOW);
             }
-            m_pcLEDs->SetAllColors(CColor::YELLOW);
         }
-    }
 
-    CCI_BatterySensor::SReading readingg = battery_sensor->GetReading();
+        CCI_BatterySensor::SReading readingg = battery_sensor->GetReading();
 
-    battery_level = readingg.AvailableCharge;
+        battery_level = readingg.AvailableCharge;
 
-    if(readingg.AvailableCharge >= 0.9999) {
-        m_pcLEDs->SetAllColors(CColor::GREEN);
-        m_sStateData.State = SStateData::STATE_EXPLORING;
-        m_sStateData.TimesChecked = 0;
-        m_sFoodData.is_exploring = true;
-        for(int j = 0; j < SwarmSize; j++){
+        if (readingg.AvailableCharge >= 0.9999) {
+            m_pcLEDs->SetAllColors(CColor::GREEN);
+            m_sStateData.State = SStateData::STATE_EXPLORING;
+            m_sStateData.TimesChecked = 0;
+            m_sFoodData.is_exploring = true;
+            for (int j = 0; j < SwarmSize; j++) {
 //            m_sStateData.ReceivedData[j][0] = 0;
 //            m_sStateData.ReceivedData[j][1] = 0;
-            m_sStateData.ReceivedData[j][2] = 0;
-            m_sStateData.ReceivedData[j][3] = 0;
-            m_sStateData.ReceivedData[j][5] = 1000000;
-        }
-        m_sFoodData.done_charging = true;
-        m_eChargingResult = CONTINUING_TASK;
-        m_pcRABA->SetData(1, m_eChargingResult);
-        NumberChargingRobots--;
-        NumberExploringRobots++;
+                m_sStateData.ReceivedData[j][2] = 0;
+                m_sStateData.ReceivedData[j][3] = 0;
+                m_sStateData.ReceivedData[j][5] = 1000000;
+            }
+            m_sFoodData.done_charging = true;
+            m_eChargingResult = CONTINUING_TASK;
+            m_pcRABA->SetData(1, m_eChargingResult);
+            NumberChargingRobots--;
+            NumberExploringRobots++;
 //        std::cout << GetId()  << " Battery fully charged" << std::endl;
+        }
     }
 
 //    std::cout << GetId()  << " Battery charged level: " << reading.AvailableCharge << std::endl;
@@ -884,74 +917,74 @@ void CFootBotForaging::Explore() {
 //
    int Probablity = uint_dist100(rng);
 
-   if(reading.AvailableCharge <= 0.95 && m_sStateData.TimesChecked == 0) {
-       m_sStateData.TimesChecked = 1;
-//       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 1){
-       m_sStateData.TimesChecked = 2;
-//       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.7 && m_sStateData.TimesChecked == 2){
-       m_sStateData.TimesChecked = 3;
-//       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.6 && m_sStateData.TimesChecked == 3){
-       m_sStateData.TimesChecked = 4;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.5 && m_sStateData.TimesChecked == 4){
-       m_sStateData.TimesChecked = 5;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
-       m_sStateData.TimesChecked = 6;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.3 && m_sStateData.TimesChecked == 6){
-       m_sStateData.TimesChecked = 7;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   else if(reading.AvailableCharge <= 0.2 && m_sStateData.TimesChecked == 7){
-       m_sStateData.TimesChecked = 8;
-//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-//                 m_sStateData.MetRobotsFactor << std::endl;
-       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
-           bReturnToNest = true;
-       }
-   }
-   if(reading.AvailableCharge <= 0.95){
+//   if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 0) {
+//       m_sStateData.TimesChecked = 1;
+////       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.8 && m_sStateData.TimesChecked == 1){
+//       m_sStateData.TimesChecked = 2;
+////       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.7 && m_sStateData.TimesChecked == 2){
+//       m_sStateData.TimesChecked = 3;
+////       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.6 && m_sStateData.TimesChecked == 3){
+//       m_sStateData.TimesChecked = 4;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.5 && m_sStateData.TimesChecked == 4){
+//       m_sStateData.TimesChecked = 5;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
+//       m_sStateData.TimesChecked = 6;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.3 && m_sStateData.TimesChecked == 6){
+//       m_sStateData.TimesChecked = 7;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+//   else if(reading.AvailableCharge <= 0.2 && m_sStateData.TimesChecked == 7){
+//       m_sStateData.TimesChecked = 8;
+////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+////                 m_sStateData.MetRobotsFactor << std::endl;
+//       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
+//           bReturnToNest = true;
+//       }
+//   }
+   if(reading.AvailableCharge <= 0.3){
        bReturnToNest = true;
 //       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 //                 m_sStateData.MetRobotsFactor << std::endl;
@@ -1073,6 +1106,14 @@ void CFootBotForaging::ReturnToNest() {
                m_pcLEDs->SetAllColors(CColor::RED);
                m_sStateData.State = SStateData::STATE_CHARGING;
                m_sStateData.TimeSearchingForPlaceInNest = 0;
+               if(m_sFoodData.can_charge){
+                   m_sStateData.DeadSaved = false;
+               }
+               else {
+                   m_sStateData.DeadSaved = true;
+                   NumberWaitingRobots++;
+                   NumberExploringRobots--;
+               }
                return;
            } else {
                /* No, keep looking */

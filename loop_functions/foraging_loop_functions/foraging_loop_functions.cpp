@@ -13,7 +13,7 @@
 
 std::string id;
 std::queue < int > awaiting_charging_queue;
-const int NUmberOfChargingStations = 5;
+const int NUmberOfChargingStations = 6;
 int charging_list [NUmberOfChargingStations];
 int numeric_id = 0;
 
@@ -211,22 +211,23 @@ void CForagingLoopFunctions::PreStep() {
          if(cPos.GetX() < -1.0f && sFoodData.wants_to_charge){
              awaiting_charging_queue.push(numeric_id);
              sFoodData.wants_to_charge = false;
-             std::cout << "ID " << numeric_id << " enters" << std::endl;
+//             std::cout << "ID " << numeric_id << " enters" << std::endl;
          }
+          if(sFoodData.done_charging){
+              for (int j = 0; j < NUmberOfChargingStations; j++){
+                  if(charging_list[j] == numeric_id){
+                      charging_list[j] = 1000;
+                  }
+              }
+              sFoodData.done_charging = false;
+              sFoodData.can_charge = false;
+          }
          for (int j = 0; j < NUmberOfChargingStations; j++) {
              if (charging_list[j] == numeric_id) {
                  sFoodData.can_charge = true;
              }
          }
-         if(sFoodData.done_charging){
-             for (int j = 0; j < NUmberOfChargingStations; j++){
-                 if(charging_list[j] == numeric_id){
-                     charging_list[j] = 1000;
-                 }
-             }
-             sFoodData.done_charging = false;
-             sFoodData.can_charge = false;
-         }
+
 
 
       }
@@ -251,11 +252,12 @@ void CForagingLoopFunctions::PreStep() {
            }
        }
    }
-   std::cout << "Lista: ";
-   for (int j = 0; j < NUmberOfChargingStations; j++) {
-       std::cout << charging_list[j] << " ";
-   }
-   std::cout << std::endl;
+
+//   std::cout << "Lista: ";
+//   for (int j = 0; j < NUmberOfChargingStations; j++) {
+//       std::cout << charging_list[j] << " ";
+//   }
+//   std::cout << std::endl;
 
 
 }
