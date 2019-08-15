@@ -67,7 +67,8 @@
   <!-- ****************** -->
   <loop_functions library="build/loop_functions/foraging_loop_functions/libforaging_loop_functions"
                   label="foraging_loop_functions">
-    <foraging items="5"
+                                                                                                                              <!-- WAS items 5 -->
+    <foraging items="45"
               radius="0.1"
               energy_per_item="1000"
               energy_per_walking_robot="1"
@@ -77,54 +78,55 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="5, 5, 2" center="0,0,1">
+                                                                                                                                  <!-- WAS 5, 5, 2 -->
+  <arena size="15, 15, 2" center="0,0,1">
 
     <floor id="floor"
            source="loop_functions"
            pixels_per_meter="50" />
 
-    <box id="wall_north" size="4,0.1,0.5" movable="false">
-      <body position="0,2,0" orientation="0,0,0" />
+    <box id="wall_north" size="12,0.1,0.5" movable="false">
+      <body position="0,6,0" orientation="0,0,0" />
     </box>
-    <box id="wall_south" size="4,0.1,0.5" movable="false">
-      <body position="0,-2,0" orientation="0,0,0" />
+    <box id="wall_south" size="12,0.1,0.5" movable="false">
+      <body position="0,-6,0" orientation="0,0,0" />
     </box>
-    <box id="wall_east" size="0.1,4,0.5" movable="false">
-      <body position="2,0,0" orientation="0,0,0" />
+    <box id="wall_east" size="0.1,12,0.5" movable="false">
+      <body position="6,0,0" orientation="0,0,0" />
     </box>
-    <box id="wall_west" size="0.1,4,0.5" movable="false">
-      <body position="-2,0,0" orientation="0,0,0" />
+    <box id="wall_west" size="0.1,12,0.5" movable="false">
+      <body position="-6,0,0" orientation="0,0,0" />
     </box>
 
     <light id="light_1"
-           position="-2,-1.5,1.0"
+           position="-6,-4.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0"
            medium="leds" />
     <light id="light_2"
-           position="-2,-0.5,1.0"
+           position="-6,-1.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0"
            medium="leds" />
     <light id="light_3"
-           position="-2,0.5,1.0"
+           position="-6,1.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0"
            medium="leds" />
     <light id="light_4"
-           position="-2,1.5,1.0"
+           position="-6,4.5,1.0"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0"
            medium="leds" />
 
     <distribute>
-      <position method="uniform" min="-2,-2,0" max="-1,2,0" />
+      <position method="uniform" min="-6,-6,0" max="-3,6,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="10" max_trials="100">
+      <entity quantity="90" max_trials="900">
         <foot-bot id="fb " rab_range='0.5'>
           <controller config="ffc" />
           <!--          <battery model="time" time_factor="-1e-5"/>-->
@@ -157,7 +159,7 @@
     <qt-opengl>
       <camera>
         <placement idx="0"
-                   position="0,0,4.34"
+                   position="0,0,12.34"
                    look_at="0,0,0"
                    lens_focal_length="20" />
       </camera>

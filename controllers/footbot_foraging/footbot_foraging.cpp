@@ -38,7 +38,7 @@ int id_value;
 
 float battery_consume_per_food_item = 0.00;         // 0.06 is equal to ten minutes
 
-const int SwarmSize = 10;
+const int SwarmSize = 90;
 
 int NumberExploringRobots = SwarmSize;
 int NumberChargingRobots;
@@ -825,59 +825,59 @@ void CFootBotForaging::Explore() {
 //        m_sStateData.MetRobotsFactor = 45;
 //    }
 
-
-    m_sStateData.MetRobotsFactor = 0;
-    m_sStateData.MetNewRobotsBattery /= (m_sStateData.MetNewContinuingRobots + m_sStateData.MetNewReturningRobots);
-//    std::cout << GetId() << " MetRB: " << m_sStateData.MetNewRobotsBattery  << std::endl;
-
-    if(m_sStateData.MetNewRobotsBattery >= 9500){
-        m_sStateData.MetRobotsFactor = 0;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 9000){
-        m_sStateData.MetRobotsFactor = 0;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 8500){
-        m_sStateData.MetRobotsFactor = 0;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 8000){
-        m_sStateData.MetRobotsFactor = 0;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 7500){
-        m_sStateData.MetRobotsFactor = 10;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 7000){
-        m_sStateData.MetRobotsFactor = 15;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 6500){
-        m_sStateData.MetRobotsFactor = 20;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 6000){
-        m_sStateData.MetRobotsFactor = 25;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 5500){
-        m_sStateData.MetRobotsFactor = 30;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 5000){
-        m_sStateData.MetRobotsFactor = 35;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 4500){
-        m_sStateData.MetRobotsFactor = 40;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 4000){
-        m_sStateData.MetRobotsFactor = 45;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 3500){
-        m_sStateData.MetRobotsFactor = 50;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 3000){
-        m_sStateData.MetRobotsFactor = 55;
-    }
-    else if(m_sStateData.MetNewRobotsBattery >= 2500){
-        m_sStateData.MetRobotsFactor = 60;
-    }
-    else {
-        m_sStateData.MetRobotsFactor = 65;
-    }
+//
+//    m_sStateData.MetRobotsFactor = 0;
+//    m_sStateData.MetNewRobotsBattery /= (m_sStateData.MetNewContinuingRobots + m_sStateData.MetNewReturningRobots);
+////    std::cout << GetId() << " MetRB: " << m_sStateData.MetNewRobotsBattery  << std::endl;
+//
+//    if(m_sStateData.MetNewRobotsBattery >= 9500){
+//        m_sStateData.MetRobotsFactor = 0;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 9000){
+//        m_sStateData.MetRobotsFactor = 0;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 8500){
+//        m_sStateData.MetRobotsFactor = 0;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 8000){
+//        m_sStateData.MetRobotsFactor = 0;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 7500){
+//        m_sStateData.MetRobotsFactor = 10;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 7000){
+//        m_sStateData.MetRobotsFactor = 15;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 6500){
+//        m_sStateData.MetRobotsFactor = 20;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 6000){
+//        m_sStateData.MetRobotsFactor = 25;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 5500){
+//        m_sStateData.MetRobotsFactor = 30;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 5000){
+//        m_sStateData.MetRobotsFactor = 35;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 4500){
+//        m_sStateData.MetRobotsFactor = 40;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 4000){
+//        m_sStateData.MetRobotsFactor = 45;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 3500){
+//        m_sStateData.MetRobotsFactor = 50;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 3000){
+//        m_sStateData.MetRobotsFactor = 55;
+//    }
+//    else if(m_sStateData.MetNewRobotsBattery >= 2500){
+//        m_sStateData.MetRobotsFactor = 60;
+//    }
+//    else {
+//        m_sStateData.MetRobotsFactor = 65;
+//    }
 
 //    std::cout << GetId() << " MRB:" << m_sStateData.MetNewRobotsBattery << " MFac: " << m_sStateData.MetRobotsFactor << std::endl;
 
@@ -898,7 +898,7 @@ void CFootBotForaging::Explore() {
 //        m_sStateData.MetRobotsFactor = 0;
 //    }
 
-//    m_sStateData.MetRobotsFactor = 0;
+    m_sStateData.MetRobotsFactor = 0;
 
 //   std::cout << GetId() << " c: " << m_sStateData.MetContinuingRobots << " r: " << m_sStateData.MetReturningRobots
 //   << " new_c: " << m_sStateData.MetNewContinuingRobots << " new_r: " << m_sStateData.MetNewReturningRobots <<
@@ -917,62 +917,62 @@ void CFootBotForaging::Explore() {
 //
    int Probablity = uint_dist100(rng);
 
-//   if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 0) {
-//       m_sStateData.TimesChecked = 1;
-////       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
-////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
-//           bReturnToNest = true;
-//       }
-//   }
-//   else if(reading.AvailableCharge <= 0.8 && m_sStateData.TimesChecked == 1){
-//       m_sStateData.TimesChecked = 2;
-////       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
-////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
-//           bReturnToNest = true;
-//       }
-//   }
-//   else if(reading.AvailableCharge <= 0.7 && m_sStateData.TimesChecked == 2){
-//       m_sStateData.TimesChecked = 3;
-////       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
-////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
-//           bReturnToNest = true;
-//       }
-//   }
-//   else if(reading.AvailableCharge <= 0.6 && m_sStateData.TimesChecked == 3){
-//       m_sStateData.TimesChecked = 4;
-////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
-//           bReturnToNest = true;
-//       }
-//   }
-//   else if(reading.AvailableCharge <= 0.5 && m_sStateData.TimesChecked == 4){
-//       m_sStateData.TimesChecked = 5;
-////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
-//           bReturnToNest = true;
-//       }
-//   }
-//   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
-//       m_sStateData.TimesChecked = 6;
-////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
-////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
-//           bReturnToNest = true;
-//       }
-//   }
+   if(reading.AvailableCharge <= 0.9 && m_sStateData.TimesChecked == 0) {
+       m_sStateData.TimesChecked = 1;
+//       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
+//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+//                 m_sStateData.MetRobotsFactor << std::endl;
+       if (Probablity >= (90 + m_sStateData.MetRobotsFactor)) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.8 && m_sStateData.TimesChecked == 1){
+       m_sStateData.TimesChecked = 2;
+//       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
+//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+//                 m_sStateData.MetRobotsFactor << std::endl;
+       if (Probablity >= (80 + m_sStateData.MetRobotsFactor)) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.7 && m_sStateData.TimesChecked == 2){
+       m_sStateData.TimesChecked = 3;
+//       std::cout << GetId() << "P " << Probablity << " B " << m_sStateData.MetNewRobotsBattery << " R " << m_sStateData.MetRobotsFactor << std::endl;
+//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+//                 m_sStateData.MetRobotsFactor << std::endl;
+       if (Probablity >= (70 + m_sStateData.MetRobotsFactor)) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.6 && m_sStateData.TimesChecked == 3){
+       m_sStateData.TimesChecked = 4;
+//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+//                 m_sStateData.MetRobotsFactor << std::endl;
+       if (Probablity >= (60 + m_sStateData.MetRobotsFactor)) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.5 && m_sStateData.TimesChecked == 4){
+       m_sStateData.TimesChecked = 5;
+//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+//                 m_sStateData.MetRobotsFactor << std::endl;
+       if (Probablity >= (50 + m_sStateData.MetRobotsFactor)) {
+           bReturnToNest = true;
+       }
+   }
+   else if(reading.AvailableCharge <= 0.4 && m_sStateData.TimesChecked == 5){
+       m_sStateData.TimesChecked = 6;
+//       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
+//                 m_sStateData.MetRobotsFactor << std::endl;
+       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+           bReturnToNest = true;
+       }
+   }
 //   else if(reading.AvailableCharge <= 0.3 && m_sStateData.TimesChecked == 6){
 //       m_sStateData.TimesChecked = 7;
 ////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 ////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (40 + m_sStateData.MetRobotsFactor)) {
+//       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
 //           bReturnToNest = true;
 //       }
 //   }
@@ -980,7 +980,7 @@ void CFootBotForaging::Explore() {
 //       m_sStateData.TimesChecked = 8;
 ////       std::cout << GetId() << " continuing: " << m_sStateData.MetContinuingRobots << " returining: " << m_sStateData.MetReturningRobots << " robot_factor: " <<
 ////                 m_sStateData.MetRobotsFactor << std::endl;
-//       if (Probablity >= (30 + m_sStateData.MetRobotsFactor)) {
+//       if (Probablity >= (20 + m_sStateData.MetRobotsFactor)) {
 //           bReturnToNest = true;
 //       }
 //   }

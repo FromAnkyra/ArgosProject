@@ -13,15 +13,20 @@
 
 std::string id;
 std::queue < int > awaiting_charging_queue;
-const int NUmberOfChargingStations = 6;
+const int NUmberOfChargingStations = 63;
 int charging_list [NUmberOfChargingStations];
 int numeric_id = 0;
 
 CForagingLoopFunctions::CForagingLoopFunctions() :
-   m_cForagingArenaSideX(-0.9f, 1.7f),                    // ORIGINAL - NOT SCALED
-   m_cForagingArenaSideY(-1.7f, 1.7f),
+//   m_cForagingArenaSideX(-0.9f, 1.7f),                    // ORIGINAL - NOT SCALED
+//   m_cForagingArenaSideY(-1.7f, 1.7f),
+
 //   m_cForagingArenaSideX(-1.8f, 3.4f),
 //   m_cForagingArenaSideY(-3.4f, 3.4f),
+
+    m_cForagingArenaSideX(-2.7f, 5.1f),
+   m_cForagingArenaSideY(-5.1f, 5.1f),
+
    m_pcFloor(NULL),
    m_pcRNG(NULL),
    m_unCollectedFood(0),
@@ -103,7 +108,7 @@ void CForagingLoopFunctions::Destroy() {
 /****************************************/
 
 CColor CForagingLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane) {
-   if(c_position_on_plane.GetX() < -1.0f) {                                                     ////ORGINAL - NOT SCALED - WAS -1.0f
+   if(c_position_on_plane.GetX() < -3.0f) {                                                     ////ORGINAL - NOT SCALED - WAS -1.0f
       return CColor::GRAY50;
    }
    for(UInt32 i = 0; i < m_cFoodPos.size(); ++i) {
@@ -163,7 +168,7 @@ void CForagingLoopFunctions::PreStep() {
           ++m_unCollectedFood;
           /* The floor texture must be updated */
           m_pcFloor->SetChanged();
-//          std::cout << "Food items from loop: " << m_unCollectedFood << std::endl;
+//          std::cout << "Food items : " << m_unCollectedFood << std::endl;
       }
       else {
          /* The foot-bot has no food item */
@@ -190,7 +195,7 @@ void CForagingLoopFunctions::PreStep() {
 //         std::cout << "ID: " << numeric_id << " position: " << cPos.GetX() << " pre_pos: " << sFoodData.previous_position.GetX()
 //         <<" position Y: " << cPos.GetY() << " prePos Y: " << sFoodData.previous_position.GetY() << " pos_counter: " << sFoodData.position_counter << std::endl;
 
-         if(cPos.GetX() > -1.0f && sFoodData.is_exploring) {                        ////ORGINAL - NOT SCALED - WAS -1.0f
+         if(cPos.GetX() > -3.0f && sFoodData.is_exploring) {                        ////ORGINAL - NOT SCALED - WAS -1.0f
             /* Check whether the foot-bot is on a food item */
             bool bDone = false;
 
@@ -208,7 +213,7 @@ void CForagingLoopFunctions::PreStep() {
                }
             }
          }
-         if(cPos.GetX() < -1.0f && sFoodData.wants_to_charge){
+         if(cPos.GetX() < -3.0f && sFoodData.wants_to_charge){                          ////ORGINAL - NOT SCALED - WAS -1.0f
              awaiting_charging_queue.push(numeric_id);
              sFoodData.wants_to_charge = false;
 //             std::cout << "ID " << numeric_id << " enters" << std::endl;

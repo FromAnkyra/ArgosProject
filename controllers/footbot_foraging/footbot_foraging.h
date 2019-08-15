@@ -167,7 +167,7 @@ public:
       /* How many times returning to the charging area was considered */
       Real TimesChecked;
       /* Array for data from received messages*/
-      Real ReceivedData[10][6];
+      Real ReceivedData[90][6];
       /* */
       Real DecisionVolatage;
       /* */
